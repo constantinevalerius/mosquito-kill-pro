@@ -138,6 +138,34 @@ body{font-family:system-ui,-apple-system,'Helvetica Neue',sans-serif;background:
 @keyframes ble-blink{0%,100%{opacity:1}50%{opacity:.4}}
 /* Section title */
 .section-title{font-size:14px;font-weight:700;color:var(--text-secondary);margin-bottom:8px}
+/* Game */
+.game-hud{display:flex;gap:10px;margin-bottom:12px}
+.game-hud-item{flex:1;background:var(--surface);border-radius:var(--radius-md);padding:12px 8px;text-align:center;border:1px solid var(--border)}
+.game-hud-item .gh-val{font-size:30px;font-weight:900;font-family:'Courier New',monospace;line-height:1}
+.game-hud-item .gh-lbl{font-size:10px;color:var(--text-muted);margin-top:4px}
+.game-hud-item .gh-val.urgent{color:var(--danger);animation:game-pulse .4s ease-in-out infinite}
+@keyframes game-pulse{0%,100%{opacity:1}50%{opacity:.3}}
+.game-board{position:relative;width:100%;height:380px;background:var(--surface);border-radius:var(--radius-lg);overflow:hidden;border:2px solid var(--border);cursor:crosshair;touch-action:none;margin-bottom:12px}
+.game-board.playing{border-color:var(--brand);box-shadow:0 0 20px rgba(245,158,11,.1)}
+.game-mosq{position:absolute;font-size:38px;cursor:pointer;user-select:none;-webkit-tap-highlight-color:transparent;z-index:10;line-height:1;animation:mosq-in .25s cubic-bezier(.34,1.56,.64,1);filter:drop-shadow(0 2px 4px rgba(0,0,0,.4))}
+.game-mosq:active{transform:scale(.25)!important}
+.game-mosq.killed{animation:mosq-die .3s ease-out forwards!important;pointer-events:none}
+@keyframes mosq-in{from{transform:scale(0) rotate(-40deg);opacity:0}to{transform:scale(1) rotate(0);opacity:1}}
+@keyframes mosq-die{0%{transform:scale(1);opacity:1}40%{transform:scale(1.5);opacity:.5}100%{transform:scale(0) rotate(60deg);opacity:0}}
+.game-overlay{position:absolute;inset:0;display:flex;flex-direction:column;align-items:center;justify-content:center;background:rgba(10,14,26,.88);z-index:20;border-radius:var(--radius-lg)}
+.game-overlay .go-icon{font-size:56px;line-height:1;margin-bottom:10px}
+.game-overlay .go-text{font-size:14px;color:var(--text-secondary);margin-bottom:6px}
+.game-overlay .go-big{font-size:48px;font-weight:900;font-family:'Courier New',monospace;color:var(--brand);line-height:1}
+.game-kill-fx{position:absolute;font-size:16px;font-weight:900;color:var(--success);pointer-events:none;z-index:30;animation:kill-fx-up .7s ease-out forwards;text-shadow:0 0 8px rgba(16,185,129,.5)}
+@keyframes kill-fx-up{0%{opacity:1;transform:translateY(0) scale(.8)}40%{opacity:1;transform:translateY(-30px) scale(1.1)}100%{opacity:0;transform:translateY(-60px) scale(.9)}}
+.game-result{text-align:center;padding:8px 0}
+.game-result .gr-score{font-size:64px;font-weight:900;font-family:'Courier New',monospace;color:var(--brand);line-height:1;animation:pop .4s ease-out}
+.game-result .gr-label{font-size:14px;color:var(--text-secondary);margin-top:4px}
+.game-history-item{display:flex;align-items:center;gap:10px;padding:10px 12px;background:var(--surface);border-radius:var(--radius-sm);margin-bottom:4px;border:1px solid var(--border)}
+.game-history-item.my-score{border-color:var(--brand);background:var(--surface-elevated)}
+.game-hist-num{font-family:'Courier New',monospace;font-size:16px;font-weight:800;color:var(--text-muted);width:28px;text-align:center;flex-shrink:0}
+.game-hist-name{flex:1;font-size:13px;font-weight:600;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.game-hist-score{font-family:'Courier New',monospace;font-size:16px;font-weight:800;color:var(--brand);flex-shrink:0}
 </style>
 </head>
 <body>
@@ -153,7 +181,8 @@ const S={
   sessionActive:false,
   tab:0,
   scanning:false,
-  scanResults:[]
+  scanResults:[],
+  gameHighScore:parseInt(localStorage.getItem('mk_ghs'))||0
 };
 
 const BADGES=[
@@ -186,6 +215,29 @@ function save(){
   localStorage.setItem('mk_log',S.loggedIn?'1':'0');
 }
 
+// ── Game State ──
+const GAME_LB=[
+  {n:'杀神归来',s:85,a:'杀'},{n:'闪电侠',s:78,a:'闪'},{n:'灭蚊达人',s:72,a:'灭'},
+  {n:'夜幕猎手',s:65,a:'夜'},{n:'快手指',s:58,a:'快'},{n:'新手村村长',s:42,a:'新'},
+  {n:'低调清蒸',s:35,a:'低'},{n:'听风吟',s:28,a:'听'},{n:'逐影',s:21,a:'逐'},
+  {n:'普通人一个',s:12,a:'普'}
+];
+let G={playing:false,score:0,timeLeft:10,mosquitoes:[],timer:null,spawnTimer:null,nextId:1};
+let audioCtx=null;
+function playBuzz(){
+  try{
+    if(!audioCtx)audioCtx=new(window.AudioContext||window.webkitAudioContext)();
+    if(audioCtx.state==='suspended')audioCtx.resume();
+    const o=audioCtx.createOscillator(),g=audioCtx.createGain();
+    o.connect(g);g.connect(audioCtx.destination);
+    o.type='sawtooth';o.frequency.setValueAtTime(200,audioCtx.currentTime);
+    o.frequency.linearRampToValueAtTime(600,audioCtx.currentTime+.05);
+    g.gain.setValueAtTime(.1,audioCtx.currentTime);
+    g.gain.linearRampToValueAtTime(0,audioCtx.currentTime+.08);
+    o.start();o.stop(audioCtx.currentTime+.08);
+  }catch(e){}
+}
+
 // ── Kill loop ──
 let killTimer=null;
 function startKillLoop(){
@@ -210,15 +262,15 @@ const app=document.getElementById('app');
 
 function render(){
   if(!S.loggedIn){renderLogin();return}
-  const tabs=['page-home','page-lb','page-dev','page-badges','page-me'];
-  const icons=['🏠','🏆','📡','🎖️','👤'];
-  const labels=['首页','排行','设备','成就','我的'];
+  const tabs=['page-home','page-lb','page-dev','page-badges','page-me','page-game'];
+  const icons=['🏠','🏆','📡','🎖️','👤','🎮'];
+  const labels=['首页','排行','设备','成就','我的','游戏'];
   app.innerHTML=tabs.map((c,i)=>`<div class="page ${i===S.tab?'active':''}" id="${c}"></div>`).join('')+
     `<div class="nav">${icons.map((ic,i)=>`<button class="nav-item ${i===S.tab?'active':''}" onclick="setTab(${i})"><span class="icon">${ic}</span>${labels[i]}</button>`).join('')}</div>`+
     `<div class="kill-log" id="killLog"></div>`+
     `<div class="modal-overlay" id="modal"><div class="modal-box" id="modalBox"></div></div>`;
   if(S.sessionActive)startKillLoop();
-  renderHome();renderLB();renderDev();renderBadges();renderMe();
+  renderHome();renderLB();renderDev();renderBadges();renderMe();renderGame();
 }
 
 function renderLogin(){
@@ -245,7 +297,7 @@ function setTab(i){
   S.tab=i;
   document.querySelectorAll('.page').forEach((p,j)=>p.classList.toggle('active',j===i));
   document.querySelectorAll('.nav-item').forEach((b,j)=>b.classList.toggle('active',j===i));
-  [renderHome,renderLB,renderDev,renderBadges,renderMe][i]();
+  [renderHome,renderLB,renderDev,renderBadges,renderMe,renderGame][i]();
 }
 
 // ── Home ──
@@ -390,6 +442,144 @@ function renderMe(){
 }
 
 function doLogout(){S.loggedIn=false;S.sessionActive=false;stopKillLoop();save();render()}
+
+// ── Game ──
+function startGame(){
+  stopGame();
+  G={playing:true,score:0,timeLeft:10,mosquitoes:[],timer:null,spawnTimer:null,nextId:1};
+  const board=document.getElementById('gameBoard');if(!board)return;
+  const overlay=board.querySelector('.game-overlay');
+  if(overlay)overlay.remove();
+  board.classList.add('playing');
+  updateGameHUD();
+  G.timer=setInterval(gameTick,1000);
+  scheduleSpawn();
+}
+function stopGame(){
+  if(G.timer){clearInterval(G.timer);G.timer=null}
+  if(G.spawnTimer){clearTimeout(G.spawnTimer);G.spawnTimer=null}
+  G.mosquitoes.forEach(m=>{const e=document.getElementById('mq-'+m.id);if(e)e.remove()});
+  G.playing=false;
+}
+function gameTick(){
+  if(!G.playing)return;
+  G.timeLeft--;
+  updateGameHUD();
+  if(G.timeLeft<=0){endGame();return}
+}
+function scheduleSpawn(){
+  if(!G.playing)return;
+  const elapsed=10-G.timeLeft;
+  const interval=Math.max(180,900-elapsed*80);
+  G.spawnTimer=setTimeout(()=>{spawnMosquito();scheduleSpawn()},interval);
+}
+function spawnMosquito(){
+  if(!G.playing)return;
+  const board=document.getElementById('gameBoard');if(!board)return;
+  const id=G.nextId++;
+  const margin=40;
+  const bw=board.clientWidth,bh=board.clientHeight;
+  const x=margin+Math.random()*(bw-2*margin);
+  const y=margin+Math.random()*(bh-2*margin);
+  const el=document.createElement('div');
+  el.id='mq-'+id;
+  el.className='game-mosq';
+  el.textContent='🦟';
+  el.style.left=x+'px';el.style.top=y+'px';
+  el.onclick=function(e){e.stopPropagation();killMosquito(id,x,y)};
+  board.appendChild(el);
+  G.mosquitoes.push({id,x,y,el});
+  setTimeout(()=>{autoRemoveMosquito(id)},2200);
+}
+function autoRemoveMosquito(id){
+  const idx=G.mosquitoes.findIndex(m=>m.id===id);
+  if(idx===-1)return;
+  const m=G.mosquitoes[idx];
+  if(m.el&&!m.el.classList.contains('killed')){
+    m.el.style.opacity='0';m.el.style.transform='scale(.5)';m.el.style.transition='all .3s';
+    setTimeout(()=>{if(m.el)m.el.remove()},300);
+  }
+  G.mosquitoes.splice(idx,1);
+}
+function killMosquito(id,x,y){
+  const idx=G.mosquitoes.findIndex(m=>m.id===id);
+  if(idx===-1)return;
+  const m=G.mosquitoes[idx];
+  m.el.classList.add('killed');
+  setTimeout(()=>{if(m.el)m.el.remove()},350);
+  G.mosquitoes.splice(idx,1);
+  G.score++;
+  updateGameHUD();
+  playBuzz();
+  showKillFX(x,y);
+}
+function showKillFX(x,y){
+  const board=document.getElementById('gameBoard');if(!board)return;
+  const fx=document.createElement('div');
+  fx.className='game-kill-fx';
+  fx.textContent='+1';
+  fx.style.left=x+'px';fx.style.top=y+'px';
+  board.appendChild(fx);
+  setTimeout(()=>fx.remove(),700);
+}
+function endGame(){
+  G.playing=false;
+  if(G.timer){clearInterval(G.timer);G.timer=null}
+  if(G.spawnTimer){clearTimeout(G.spawnTimer);G.spawnTimer=null}
+  G.mosquitoes.forEach(m=>{if(m.el)m.el.remove()});
+  G.mosquitoes=[];
+  const board=document.getElementById('gameBoard');
+  if(board)board.classList.remove('playing');
+  if(G.score>S.gameHighScore){S.gameHighScore=G.score;localStorage.setItem('mk_ghs',G.score);}
+  renderGame();
+}
+function updateGameHUD(){
+  const tel=document.getElementById('gameTimeLeft');
+  const sel=document.getElementById('gameScore');
+  if(tel){tel.textContent=G.timeLeft;tel.classList.toggle('urgent',G.timeLeft<=3)}
+  if(sel)sel.textContent=G.score;
+}
+function renderGame(){
+  const el=document.getElementById('page-game');if(!el)return;
+  const merged=[...GAME_LB];
+  if(G.score>0||S.gameHighScore>0){
+    const my={n:'灭蚊战士',s:Math.max(G.score||S.gameHighScore,0),a:'灭'};
+    let inserted=false;
+    for(let i=0;i<merged.length;i++){if(my.s>=merged[i].s){merged.splice(i,0,my);inserted=true;break}}
+    if(!inserted)merged.push(my);
+    if(merged.length>10)merged.length=10;
+  }
+  const ac=['var(--gold)','var(--silver)','var(--bronze)','var(--info)','var(--info)','var(--info)','var(--info)','var(--info)','var(--info)','var(--info)'];
+  let boardHTML='';
+  if(!G.playing){
+    let ov='';
+    if(G.score>0){
+      let tier='';
+      if(G.score>=50)tier='<div style="margin-top:6px;font-size:20px">🏆 传奇猎手！</div>';
+      else if(G.score>=30)tier='<div style="margin-top:6px;font-size:18px">🔥 灭蚊高手！</div>';
+      else if(G.score>=15)tier='<div style="margin-top:6px;font-size:16px">⚡ 身手不错！</div>';
+      else if(G.score>0)tier='<div style="margin-top:6px;font-size:14px;color:var(--text-secondary)">继续加油！</div>';
+      ov='<div class="game-result"><div class="gr-score">'+G.score+'</div><div class="gr-label">你消灭了 '+G.score+' 只蚊子！</div>'+tier+'</div>';
+    }else{
+      ov='<div class="go-text">10秒倒计时，点击蚊子即可消灭</div><div class="go-text" style="font-size:12px">倒计时越少，蚊子越多！</div>';
+    }
+    boardHTML='<div class="game-overlay"><div class="go-icon">🦟</div>'+ov+'<button class="btn btn-brand" style="width:200px;margin-top:16px" onclick="startGame()">'+(G.score>0?'🔄 再来一局':'⚡ 开始游戏')+'</button></div>';
+  }
+  let lbHTML='';
+  if(G.score>0){
+    let rows='';
+    for(let i=0;i<merged.length;i++){
+      const p=merged[i];
+      const medal=i===0?'🥇':i===1?'🥈':i===2?'🥉':'';
+      const isMe=p.n==='灭蚊战士';
+      const numHTML=medal||'<span style="font-family:\'Courier New\',monospace;font-size:14px;font-weight:800;color:var(--text-muted)">'+(i+1)+'</span>';
+      rows+='<div class="game-history-item'+(isMe?' my-score':'')+'"><span style="font-size:18px;width:28px;text-align:center;flex-shrink:0">'+numHTML+'</span><div class="rank-avatar" style="background:'+(ac[i]||'var(--info)')+';width:28px;height:28px;font-size:12px;flex-shrink:0">'+p.a+'</div><span class="game-hist-name">'+p.n+(isMe?' (你)':'')+'</span><span class="game-hist-score">'+p.s+'只</span></div>';
+    }
+    lbHTML='<div class="section-title" style="margin-top:16px">🏆 极速榜</div><div style="margin-bottom:16px">'+rows+'</div>';
+  }
+  el.innerHTML='<div class="game-hud"><div class="game-hud-item"><div class="gh-val'+(G.playing&&G.timeLeft<=3?' urgent':'')+'" id="gameTimeLeft">'+G.timeLeft+'</div><div class="gh-lbl">⏱ 剩余秒数</div></div><div class="game-hud-item"><div class="gh-val text-success" id="gameScore">'+G.score+'</div><div class="gh-lbl">🦟 '+(G.playing?'实时击杀':'击杀数')+'</div></div><div class="game-hud-item"><div class="gh-val text-brand">'+S.gameHighScore+'</div><div class="gh-lbl">🏆 最高记录</div></div></div><div class="game-board'+(G.playing?' playing':'')+'" id="gameBoard">'+boardHTML+'</div>'+lbHTML+'<div class="card" style="text-align:center;padding:14px"><div style="font-size:13px;color:var(--text-secondary)">💡 提示：蚊子会在2秒后自动飞走，手速要快！</div></div>';
+  if(G.playing)updateGameHUD();
+}
 
 // ── Init ──
 render();
