@@ -1,0 +1,398 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,user-scalable=no,viewport-fit=cover">
+<meta name="theme-color" content="#0A0E1A">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<title>八万·蚊消令</title>
+<style>
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+:root{
+  --bg:#0A0E1A;--surface:#141928;--surface-elevated:#1E2539;
+  --brand:#F59E0B;--success:#10B981;--info:#3B82F6;--danger:#EF4444;
+  --text-primary:#F8FAFC;--text-secondary:#94A3B8;--text-muted:#475569;
+  --border:#1E2539;
+  --radius-sm:6px;--radius-md:10px;--radius-lg:16px;--radius-full:9999px;
+  --gold:#FFD700;--silver:#C0C0C0;--bronze:#CD7F32;--legend:#FF6B35;
+}
+html,body{height:100%;overflow:hidden}
+body{font-family:system-ui,-apple-system,'Helvetica Neue',sans-serif;background:var(--bg);color:var(--text-primary);-webkit-tap-highlight-color:transparent;-webkit-font-smoothing:antialiased}
+.app{max-width:480px;margin:0 auto;height:100%;display:flex;flex-direction:column;position:relative;overflow:hidden}
+.page{display:none;flex:1;overflow-y:auto;-webkit-overflow-scrolling:touch;padding:16px 16px 80px}
+.page.active{display:block}
+/* Splash / Login */
+.splash{background:var(--bg);color:var(--text-primary);display:flex;flex-direction:column;align-items:center;justify-content:center;min-height:100vh;min-height:100dvh;padding:32px;text-align:center}
+.splash .logo{font-size:64px;margin-bottom:16px;line-height:1}
+.splash h1{font-size:28px;font-weight:800;color:var(--brand);margin-bottom:8px;letter-spacing:-.5px}
+.splash .sub{font-size:14px;color:var(--text-secondary);margin-bottom:32px}
+.splash .field{width:100%;margin-bottom:14px;text-align:left}
+.splash .field label{display:block;font-size:13px;color:var(--text-secondary);margin-bottom:6px}
+.splash .field input{width:100%;padding:13px 16px;border-radius:var(--radius-sm);border:1px solid var(--border);background:var(--surface);color:var(--text-primary);font-size:15px;outline:none;transition:border .2s}
+.splash .field input:focus{border-color:var(--brand)}
+.btn{display:block;width:100%;padding:14px;border-radius:var(--radius-sm);border:none;font-size:16px;font-weight:700;cursor:pointer;transition:opacity .15s,transform .1s;text-align:center;min-height:48px}
+.btn:active{opacity:.85;transform:scale(.98)}
+.btn-brand{background:var(--brand);color:#000}
+.btn-secondary{background:var(--surface-elevated);color:var(--text-primary)}
+.btn-danger{background:var(--danger);color:#fff}
+.btn-sm{padding:8px 16px;font-size:13px;min-height:36px}
+/* Nav */
+.nav{position:fixed;bottom:0;left:50%;transform:translateX(-50%);width:100%;max-width:480px;background:var(--bg);border-top:1px solid var(--border);display:flex;padding:6px 0 env(safe-area-inset-bottom,8px);z-index:100}
+.nav-item{flex:1;display:flex;flex-direction:column;align-items:center;justify-content:center;padding:6px 0;color:var(--text-muted);font-size:10px;cursor:pointer;transition:color .2s;border:none;background:none;min-height:52px;-webkit-tap-highlight-color:transparent}
+.nav-item.active{color:var(--brand)}
+.nav-item .icon{font-size:22px;margin-bottom:2px}
+/* Cards */
+.card{background:var(--surface);border-radius:var(--radius-lg);padding:16px;margin-bottom:12px;border:1px solid var(--border)}
+.card-highlight{border-color:var(--brand)}
+/* Flex */
+.flex-row{display:flex;gap:8px}
+.flex-row>*{flex:1}
+/* Text helpers */
+.text-brand{color:var(--brand)}.text-success{color:var(--success)}.text-info{color:var(--info)}.text-danger{color:var(--danger)}.text-muted{color:var(--text-muted)}.text-secondary{color:var(--text-secondary)}
+/* Big number */
+.big-number{font-size:96px;font-weight:900;font-family:'Courier New',Courier,monospace;color:var(--brand);text-align:center;line-height:1;user-select:none}
+.big-number.pop{animation:pop .25s ease-out}
+@keyframes pop{0%{transform:scale(1)}50%{transform:scale(1.12)}100%{transform:scale(1)}}
+/* Stat cards */
+.stat-card{background:var(--surface-elevated);border-radius:var(--radius-md);padding:12px 8px;text-align:center;border:1px solid var(--border)}
+.stat-card .num{font-size:22px;font-weight:800;font-family:'Courier New',monospace;color:var(--text-primary)}
+.stat-card .lbl{font-size:11px;color:var(--text-muted);margin-top:2px}
+/* Device status */
+.device-status{display:flex;align-items:center;gap:10px;padding:14px 16px;background:var(--surface);border-radius:var(--radius-md);border:1px solid var(--border);margin-bottom:16px}
+.status-dot{width:10px;height:10px;border-radius:50%;background:var(--text-muted);flex-shrink:0}
+.status-dot.online{background:var(--success);box-shadow:0 0 8px rgba(16,185,129,.4)}
+/* Contained button */
+.btn-contained{display:block;width:100%;padding:16px;border:none;border-radius:var(--radius-sm);font-size:16px;font-weight:700;cursor:pointer;transition:all .15s;text-align:center;min-height:52px}
+.btn-contained:active{transform:scale(.98)}
+.btn-brand-contained{background:var(--brand);color:#000}
+.btn-danger-contained{background:var(--danger);color:#fff}
+/* Leaderboard */
+.leaderboard-item{display:flex;align-items:center;gap:12px;padding:12px 14px;background:var(--surface);border-radius:var(--radius-md);margin-bottom:6px;border:1px solid var(--border)}
+.leaderboard-item.my-rank{border-color:var(--brand);background:var(--surface-elevated)}
+.rank-medal{font-size:20px;width:32px;text-align:center;flex-shrink:0}
+.rank-num{font-weight:800;font-size:15px;font-family:'Courier New',monospace;color:var(--text-muted)}
+.rank-avatar{width:36px;height:36px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:14px;font-weight:700;color:#000;flex-shrink:0}
+.rank-name{flex:1;font-size:14px;font-weight:600;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.rank-score{font-family:'Courier New',monospace;font-size:18px;font-weight:800;color:var(--brand);flex-shrink:0}
+/* Badges */
+.badge-grid{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+.badge-card{background:var(--surface);border-radius:var(--radius-md);padding:18px 12px;text-align:center;border:1px solid var(--border);cursor:pointer;transition:transform .15s,opacity .2s}
+.badge-card:active{transform:scale(.96)}
+.badge-card.locked{opacity:.3;pointer-events:none}
+.badge-icon{font-size:36px;margin-bottom:6px;line-height:1}
+.badge-name{font-size:13px;font-weight:700;margin-bottom:4px}
+.tag{display:inline-block;padding:3px 10px;border-radius:var(--radius-full);font-size:10px;font-weight:700}
+.tag-bronze{background:rgba(205,127,50,.15);color:var(--bronze)}
+.tag-silver{background:rgba(192,192,192,.15);color:var(--silver)}
+.tag-gold{background:rgba(255,215,0,.15);color:var(--gold)}
+.tag-legend{background:rgba(255,107,53,.15);color:var(--legend)}
+/* Profile */
+.profile-header{text-align:center;margin-bottom:20px}
+.profile-avatar{width:72px;height:72px;border-radius:50%;background:var(--brand);display:flex;align-items:center;justify-content:center;font-size:28px;font-weight:800;color:#000;margin:0 auto 12px}
+.profile-name{font-size:20px;font-weight:700;margin-bottom:6px}
+.profile-level{display:inline-flex;align-items:center;gap:6px;padding:4px 14px;background:var(--surface-elevated);border-radius:var(--radius-full);font-size:13px;font-weight:700;color:var(--brand);border:1px solid var(--border)}
+.profile-stats{display:grid;grid-template-columns:repeat(4,1fr);gap:8px;margin-bottom:16px}
+.profile-stat{background:var(--surface);border-radius:var(--radius-md);padding:12px 6px;text-align:center;border:1px solid var(--border)}
+.profile-stat .pval{font-size:17px;font-weight:800;font-family:'Courier New',monospace;color:var(--text-primary)}
+.profile-stat .plbl{font-size:10px;color:var(--text-muted);margin-top:2px}
+.session-item{display:flex;justify-content:space-between;align-items:center;padding:10px 14px;background:var(--surface);border-radius:var(--radius-sm);margin-bottom:4px}
+.session-date{font-size:12px;color:var(--text-muted)}
+.session-kills{font-family:'Courier New',monospace;font-size:15px;font-weight:700;color:var(--brand)}
+.menu-item{display:flex;align-items:center;justify-content:space-between;padding:14px 16px;background:var(--surface);border-radius:var(--radius-md);margin-bottom:6px;cursor:pointer;border:1px solid var(--border);min-height:48px}
+.menu-item:active{opacity:.8}
+.menu-label{font-size:15px}
+.menu-arrow{font-size:16px;color:var(--text-muted)}
+/* Season tabs */
+.season-tabs{display:flex;gap:4px;margin-bottom:12px;background:var(--surface);border-radius:var(--radius-sm);padding:4px}
+.season-tab{flex:1;text-align:center;padding:8px;border-radius:var(--radius-sm);font-size:13px;font-weight:600;cursor:pointer;border:none;background:transparent;color:var(--text-muted);transition:all .2s}
+.season-tab.active{background:var(--brand);color:#000}
+/* Scan */
+.scan-btn{width:100%;padding:14px;border-radius:var(--radius-sm);border:2px dashed var(--border);background:transparent;color:var(--text-secondary);font-size:16px;cursor:pointer;transition:all .2s;min-height:52px}
+.scan-btn:active{border-color:var(--brand);color:var(--brand)}
+.radar-wrap{text-align:center;padding:28px 0}
+.radar{display:inline-block;width:60px;height:60px;border:3px solid var(--brand);border-radius:50%;animation:radar-pulse 1.2s ease-out infinite;position:relative}
+.radar::after{content:'';position:absolute;inset:8px;border-radius:50%;border:2px solid var(--brand);opacity:.6;animation:radar-pulse 1.2s ease-out .3s infinite}
+@keyframes radar-pulse{0%{opacity:1;transform:scale(.8)}100%{opacity:0;transform:scale(1.5)}}
+.scan-device{padding:12px 14px;background:var(--surface);border-radius:var(--radius-md);margin-bottom:6px;display:flex;align-items:center;border:1px solid var(--border)}
+.scan-device .dev-name{font-size:14px;font-weight:600;flex:1}
+.scan-device .dev-rssi{font-size:12px;color:var(--text-muted);margin-right:12px}
+.scan-device .bind-btn{padding:7px 18px;border-radius:var(--radius-sm);background:var(--brand);color:#000;border:none;font-size:12px;font-weight:700;cursor:pointer}
+.scan-device .bind-btn:active{opacity:.8}
+/* Kill notification */
+.kill-log{position:fixed;top:16px;left:50%;transform:translateX(-50%);z-index:150;pointer-events:none}
+.kill-notify{background:var(--success);color:#fff;font-size:22px;font-weight:900;padding:6px 20px;border-radius:var(--radius-full);opacity:0;transform:translateY(-16px);animation:kill-in .3s ease-out forwards,.3s ease-in 1.2s kill-out forwards;font-family:'Courier New',monospace;white-space:nowrap}
+@keyframes kill-in{to{opacity:1;transform:translateY(0)}}
+@keyframes kill-out{to{opacity:0;transform:translateY(-16px)}}
+/* Modal */
+.modal-overlay{display:none;position:fixed;inset:0;background:rgba(0,0,0,.7);z-index:200;align-items:center;justify-content:center;padding:24px}
+.modal-overlay.show{display:flex}
+.modal-box{background:var(--surface-elevated);border-radius:var(--radius-lg);padding:24px;text-align:center;max-width:300px;width:100%;border:1px solid var(--border)}
+.modal-box .modal-icon{font-size:48px;margin-bottom:12px;line-height:1}
+.modal-box h3{font-size:18px;margin-bottom:6px}
+.modal-box p{font-size:13px;color:var(--text-secondary);margin-bottom:4px}
+.modal-close{margin-top:16px;padding:10px 32px;border-radius:var(--radius-sm);background:var(--brand);color:#000;border:none;font-size:14px;font-weight:700;cursor:pointer}
+.modal-close:active{opacity:.8}
+/* BLE pulse */
+.ble-pulse{animation:ble-blink 2s ease-in-out infinite}
+@keyframes ble-blink{0%,100%{opacity:1}50%{opacity:.4}}
+/* Section title */
+.section-title{font-size:14px;font-weight:700;color:var(--text-secondary);margin-bottom:8px}
+</style>
+</head>
+<body>
+<div id="app" class="app"></div>
+<script>
+// ── State ──
+const S={
+  loggedIn:localStorage.getItem('mk_log')==='1',
+  today:parseInt(localStorage.getItem('mk_today'))||42,
+  week:parseInt(localStorage.getItem('mk_week'))||156,
+  month:parseInt(localStorage.getItem('mk_month'))||320,
+  season:parseInt(localStorage.getItem('mk_season'))||847,
+  sessionActive:false,
+  tab:0,
+  scanning:false,
+  scanResults:[]
+};
+
+const BADGES=[
+  {id:'first',name:'首杀之刃',icon:'⚔️',tier:'bronze',desc:'完成第一次击杀',cond:'击杀1只',ok:true,date:'2026-06-01'},
+  {id:'ten',name:'十步一杀',icon:'🎯',tier:'silver',desc:'累计击杀10只',cond:'累计10只',ok:true,date:'2026-06-02'},
+  {id:'hundred',name:'百蚊斩',icon:'🗡️',tier:'gold',desc:'累计击杀100只',cond:'累计100只',ok:true,date:'2026-06-04'},
+  {id:'thousand',name:'千军破',icon:'🔥',tier:'legend',desc:'累计击杀1000只',cond:'累计1000只',ok:false},
+  {id:'combo',name:'连击王者',icon:'⚡',tier:'silver',desc:'单次出击连杀50只',cond:'单次连击50',ok:true,date:'2026-06-05'},
+  {id:'night',name:'暗夜猎手',icon:'🌙',tier:'gold',desc:'夜间击杀100只',cond:'22:00-6:00累计100',ok:false},
+  {id:'weekly',name:'周榜之星',icon:'🏆',tier:'bronze',desc:'进入周排行榜前三',cond:'周榜TOP3',ok:true,date:'2026-06-07'},
+  {id:'season_champ',name:'赛季冠军',icon:'👑',tier:'legend',desc:'赛季排行榜第一名',cond:'赛季总榜第一',ok:false}
+];
+
+const LB=[
+  {n:'杀神归来',s:800,a:'杀'},{n:'灭蚊达人',s:720,a:'灭'},{n:'夜幕猎手',s:650,a:'夜'},
+  {n:'新手村村长',s:530,a:'新'},{n:'驱蚊卫士',s:480,a:'驱'},{n:'低调清蒸',s:360,a:'低'},
+  {n:'听风吟',s:290,a:'听'},{n:'逐影',s:210,a:'逐'},{n:'蝉鸣空桑',s:150,a:'蝉'},
+  {n:'普通人一个',s:120,a:'普'}
+];
+const MY={n:'灭蚊战士',s:420,a:'灭',r:47};
+
+const SESSIONS=[
+  {d:'6/9 08:30',k:23,sc:230,t:'32分钟'},{d:'6/8 21:15',k:45,sc:450,t:'58分钟'},
+  {d:'6/7 20:00',k:38,sc:380,t:'45分钟'},{d:'6/6 22:10',k:15,sc:150,t:'20分钟'},
+  {d:'6/5 19:45',k:56,sc:560,t:'1小时10分'}
+];
+
+function save(){
+  ['today','week','month','season'].forEach(k=>localStorage.setItem('mk_'+k,S[k]));
+  localStorage.setItem('mk_log',S.loggedIn?'1':'0');
+}
+
+// ── Kill loop ──
+let killTimer=null;
+function startKillLoop(){
+  stopKillLoop();
+  killTimer=setInterval(()=>{
+    S.today++;S.week++;S.month++;S.season++;save();
+    const el=document.getElementById('bigNum');
+    if(el){el.textContent=S.today;el.classList.remove('pop');void el.offsetWidth;el.classList.add('pop')}
+    showKillNotify();
+  },1200);
+}
+function stopKillLoop(){if(killTimer){clearInterval(killTimer);killTimer=null}}
+
+function showKillNotify(){
+  const log=document.getElementById('killLog');if(!log)return;
+  const d=document.createElement('div');d.className='kill-notify';d.textContent='+1';
+  log.appendChild(d);setTimeout(()=>d.remove(),1800);
+}
+
+// ── Render ──
+const app=document.getElementById('app');
+
+function render(){
+  if(!S.loggedIn){renderLogin();return}
+  const tabs=['page-home','page-lb','page-dev','page-badges','page-me'];
+  const icons=['🏠','🏆','📡','🎖️','👤'];
+  const labels=['首页','排行','设备','成就','我的'];
+  app.innerHTML=tabs.map((c,i)=>`<div class="page ${i===S.tab?'active':''}" id="${c}"></div>`).join('')+
+    `<div class="nav">${icons.map((ic,i)=>`<button class="nav-item ${i===S.tab?'active':''}" onclick="setTab(${i})"><span class="icon">${ic}</span>${labels[i]}</button>`).join('')}</div>`+
+    `<div class="kill-log" id="killLog"></div>`+
+    `<div class="modal-overlay" id="modal"><div class="modal-box" id="modalBox"></div></div>`;
+  if(S.sessionActive)startKillLoop();
+  renderHome();renderLB();renderDev();renderBadges();renderMe();
+}
+
+function renderLogin(){
+  app.innerHTML=`<div class="splash">
+    <div class="logo">⚡</div>
+    <h1>八万·蚊消令</h1>
+    <div class="sub">硬核灭蚊，全球竞技</div>
+    <div class="field"><label>手机号</label><input id="phone" type="tel" placeholder="请输入手机号" value="13800138000"></div>
+    <div class="field"><label>验证码</label><input id="sms" type="text" placeholder="请输入验证码" maxlength="6" value="123456"></div>
+    <button class="btn btn-brand" style="margin-top:8px" onclick="doLogin()">登 录</button>
+    <button class="btn btn-secondary" style="margin-top:8px" onclick="doLogin()">微信登录</button>
+  </div>`;
+}
+
+function doLogin(){
+  const p=document.getElementById('phone').value.trim();
+  const s=document.getElementById('sms').value.trim();
+  if(!p||!s){alert('请输入手机号和验证码');return}
+  if(s!=='123456'){alert('验证码错误（Mock验证码：123456）');return}
+  S.loggedIn=true;save();render();
+}
+
+function setTab(i){
+  S.tab=i;
+  document.querySelectorAll('.page').forEach((p,j)=>p.classList.toggle('active',j===i));
+  document.querySelectorAll('.nav-item').forEach((b,j)=>b.classList.toggle('active',j===i));
+  [renderHome,renderLB,renderDev,renderBadges,renderMe][i]();
+}
+
+// ── Home ──
+function renderHome(){
+  const el=document.getElementById('page-home');if(!el)return;
+  el.innerHTML=`
+    <div class="device-status">
+      <div class="status-dot ${S.sessionActive?'online ble-pulse':'online'}"></div>
+      <span style="font-size:14px;font-weight:600">${S.sessionActive?'蓝牙已连接 · 出击中':'蓝牙已连接 · 待命中'}</span>
+    </div>
+    <div style="padding:20px 0">
+      <div class="big-number" id="bigNum">${S.today}</div>
+      <div style="text-align:center;font-size:13px;color:var(--text-muted);margin-top:6px">今日灭蚊</div>
+    </div>
+    <div class="flex-row" style="margin-top:8px">
+      <div class="stat-card"><div class="num">${S.week}</div><div class="lbl">本周</div></div>
+      <div class="stat-card"><div class="num">${S.month}</div><div class="lbl">本月</div></div>
+      <div class="stat-card"><div class="num">${S.season}</div><div class="lbl">赛季</div></div>
+    </div>
+    <div style="margin-top:20px">
+      ${S.sessionActive
+        ?`<button class="btn-contained btn-danger-contained" onclick="endSession()">⏹ 结束出击</button>`
+        :`<button class="btn-contained btn-brand-contained" onclick="startSession()">⚡ 开始出击</button>`}
+    </div>`;
+}
+
+function startSession(){S.sessionActive=true;startKillLoop();renderHome()}
+function endSession(){S.sessionActive=false;stopKillLoop();renderHome()}
+
+// ── Leaderboard ──
+function renderLB(){
+  const el=document.getElementById('page-lb');if(!el)return;
+  const avatarColors=['var(--gold)','var(--silver)','var(--bronze)','var(--info)','var(--info)','var(--info)','var(--info)','var(--info)','var(--info)','var(--info)'];
+  el.innerHTML=`
+    <div class="season-tabs"><button class="season-tab active">2026夏季赛</button></div>
+    <div class="card card-highlight" style="margin-bottom:12px">
+      <div style="font-size:12px;color:var(--text-secondary)">你的排名</div>
+      <div style="display:flex;align-items:center;gap:10px;margin-top:6px">
+        <span style="font-family:'Courier New',monospace;font-size:22px;font-weight:800;color:var(--brand)">#${MY.r}</span>
+        <div class="rank-avatar" style="background:var(--brand);width:28px;height:28px;font-size:12px">${MY.a}</div>
+        <span style="font-weight:600;font-size:14px">${MY.n}</span>
+        <span style="margin-left:auto;font-family:'Courier New',monospace;font-weight:800;color:var(--brand);font-size:18px">${MY.s}</span>
+      </div>
+    </div>
+    ${LB.map((p,i)=>{
+      const medal=i===0?'🥇':i===1?'🥈':i===2?'🥉':'';
+      return`<div class="leaderboard-item">
+        <span class="rank-medal">${medal||`<span class="rank-num">${i+1}</span>`}</span>
+        <div class="rank-avatar" style="background:${avatarColors[i]||'var(--info)'}">${p.a}</div>
+        <span class="rank-name">${p.n}</span>
+        <span class="rank-score">${p.s}</span>
+      </div>`;
+    }).join('')}`;
+}
+
+// ── Devices ──
+function renderDev(){
+  const el=document.getElementById('page-dev');if(!el)return;
+  let scanHtml='';
+  if(S.scanning)scanHtml=`<div class="radar-wrap"><div class="radar"></div><div style="margin-top:12px;font-size:14px;color:var(--text-secondary)">正在扫描附近设备...</div></div>`;
+  else if(S.scanResults.length)scanHtml=S.scanResults.map(d=>`<div class="scan-device">
+    <span class="dev-name">${d.name}</span><span class="dev-rssi">${d.rssi} dBm</span>
+    <button class="bind-btn" onclick="bindDev('${d.name}')">绑定</button></div>`).join('');
+  el.innerHTML=`
+    <div class="card">
+      <div style="display:flex;justify-content:space-between;align-items:center">
+        <div><div style="font-weight:700;font-size:15px">八万Pro X1</div>
+        <div class="text-success" style="font-size:12px;margin-top:2px">● 已连接</div></div>
+        <div style="text-align:right"><div class="text-info" style="font-weight:700;font-size:18px">78%</div>
+        <div style="font-size:11px;color:var(--text-muted)">电量</div></div>
+      </div>
+      <button class="btn btn-danger btn-sm" style="margin-top:12px" onclick="alert('设备已解绑')">解绑设备</button>
+    </div>
+    ${S.scanning||S.scanResults.length?'':`<button class="scan-btn" onclick="startScan()">＋ 添加新设备</button>`}
+    ${scanHtml}`;
+}
+
+function startScan(){
+  S.scanning=true;renderDev();
+  setTimeout(()=>{
+    S.scanResults=[
+      {name:'八万Pro X1',rssi:'-42'},{name:'智能指环 S1',rssi:'-58'},{name:'华为Watch GT',rssi:'-65'}
+    ];S.scanning=false;renderDev();
+  },2500);
+}
+function bindDev(n){S.scanResults=[];S.scanning=false;alert('已绑定: '+n);renderDev()}
+
+// ── Badges ──
+function renderBadges(){
+  const el=document.getElementById('page-badges');if(!el)return;
+  const tc={bronze:'tag-bronze',silver:'tag-silver',gold:'tag-gold',legend:'tag-legend'};
+  const tn={bronze:'铜',silver:'银',gold:'金',legend:'传说'};
+  el.innerHTML=`<div class="badge-grid">
+    ${BADGES.map(b=>`<div class="badge-card ${b.ok?'':'locked'}" onclick="${b.ok?`showBadge('${b.id}')`:''}">
+      <div class="badge-icon">${b.icon}</div>
+      <div class="badge-name">${b.name}</div>
+      <span class="tag ${tc[b.tier]}">${tn[b.tier]}</span>
+    </div>`).join('')}
+  </div>`;
+}
+
+function showBadge(id){
+  const b=BADGES.find(x=>x.id===id);if(!b)return;
+  const m=document.getElementById('modal'),box=document.getElementById('modalBox');
+  if(!m||!box)return;
+  box.innerHTML=`<div class="modal-icon">${b.icon}</div>
+    <h3>${b.name}</h3>
+    <p>${b.desc}</p>
+    <p style="font-size:12px;color:var(--text-muted)">条件：${b.cond}</p>
+    <p style="font-size:12px;color:var(--success)">获得于 ${b.date||'--'}</p>
+    <button class="modal-close" onclick="closeModal()">知道了</button>`;
+  m.classList.add('show');
+}
+function closeModal(){const m=document.getElementById('modal');if(m)m.classList.remove('show')}
+
+// ── Profile ──
+function renderMe(){
+  const el=document.getElementById('page-me');if(!el)return;
+  el.innerHTML=`
+    <div class="profile-header">
+      <div class="profile-avatar">灭</div>
+      <div class="profile-name">灭蚊战士</div>
+      <div class="profile-level">◉ LV.12</div>
+    </div>
+    <div class="profile-stats">
+      <div class="profile-stat"><div class="pval">${S.season}</div><div class="plbl">总击杀</div></div>
+      <div class="profile-stat"><div class="pval">#23</div><div class="plbl">最佳排名</div></div>
+      <div class="profile-stat"><div class="pval">5</div><div class="plbl">勋章</div></div>
+      <div class="profile-stat"><div class="pval">45</div><div class="plbl">活跃天</div></div>
+    </div>
+    <div class="section-title">最近战绩</div>
+    ${SESSIONS.map(s=>`<div class="session-item">
+      <span class="session-date">${s.d}</span>
+      <span class="session-kills">${s.k}只 · ${s.sc}分</span>
+      <span style="font-size:12px;color:var(--text-muted)">${s.t}</span>
+    </div>`).join('')}
+    <div style="margin-top:16px">
+      <div class="menu-item" onclick="alert('会员中心（V1.2上线）')"><span class="menu-label">💎 会员中心</span><span class="menu-arrow">›</span></div>
+      <div class="menu-item" onclick="alert('设置页面')"><span class="menu-label">⚙️ 设置</span><span class="menu-arrow">›</span></div>
+      <div class="menu-item" onclick="doLogout()"><span class="menu-label text-danger">退出登录</span></div>
+    </div>`;
+}
+
+function doLogout(){S.loggedIn=false;S.sessionActive=false;stopKillLoop();save();render()}
+
+// ── Init ──
+render();
+</script>
+</body>
+</html>
