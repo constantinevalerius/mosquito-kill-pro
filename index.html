@@ -606,7 +606,8 @@ const SHOP_PRODUCTS={
   }
 };
 
-function formatPrice(cents){
+let SHOP_TAB=0;
+  function formatPrice(cents){
   return (cents/100).toFixed(2);
 }
 
@@ -1596,13 +1597,10 @@ function renderGame(){
 
 
 // ── Shop Page ──
-let SHOP_TAB = 0; // 0=单品, 1=套餐
 
 function renderShop(){
-  S.tab = 5; // Keep shop under "我的" context
-  const el = document.getElementById('page-me');
-  if(!el) return;
-  const tabsHtml = '<div class="season-tabs"><button class="season-tab '+(SHOP_TAB===0?'active':'')+'" onclick=\'switchShopTab(0)\'>🛒 单品</button><button class="season-tab '+(SHOP_TAB===1?'active':'')+'" onclick=\'switchShopTab(1)\'>📦 组合套餐</button></div>';
+  const el=document.getElementById('page-me');if(!el)return;
+  const tabsHtml='<div class="season-tabs"><button class="season-tab '+(SHOP_TAB===0?'active':'')+'" onclick="switchShopTab(0)">🛒 单品</button><button class="season-tab '+(SHOP_TAB===1?'active':'')+'" onclick="switchShopTab(1)">📦 组合套餐</button></div>';
   let bodyHtml = '';
   if(SHOP_TAB === 0){
     bodyHtml = renderShopSingle();
@@ -1618,59 +1616,56 @@ function switchShopTab(tab){
 }
 
 function renderShopSingle(){
-  let html = '';
-  const products = ['racket','watch','ring'];
-  products.forEach(function(pid) {
-    const p = SHOP_PRODUCTS[pid];
-    if(!p) return;
-    let badgeHtml = '';
-    p.tags.forEach(function(t) { badgeHtml += '<span class="sc-tag">' + t + '</span>'; });
-    html += '<div class="shop-card" onclick="openShopPopup(\'' + pid + '\')">' +
-      '<div class="sc-img">' + p.icon + '</div>' +
-      '<div class="sc-name">' + p.name + '</div>' +
-      '<div class="sc-desc">' + p.desc + '</div>' +
-      '<div class="sc-tags">' + badgeHtml + '</div>' +
-      '<div class="sc-price-row">' +
-        '<span class="sc-price">¥<span class="yen">' + formatPrice(p.price) + '</span></span>' +
-        '<span class="sc-orig-price">¥' + formatPrice(p.origPrice) + '</span>' +
-      '</div>' +
-      '<button class="sc-btn" onclick="event.stopPropagation();goBuy(\'' + pid + '\')">🛒 立即购买</button>' +
-    '</div>';
+  let html='';
+  const products=['racket','watch','ring'];
+  products.forEach(function(pid){
+    const p=SHOP_PRODUCTS[pid];if(!p)return;
+    let badgeHtml='';
+    p.tags.forEach(function(t){badgeHtml+='<span class="sc-tag">'+t+'</span>';});
+    html+='<div class="shop-card" data-pid="'+pid+'"><div class="sc-img">'+p.icon+'</div><div class="sc-name">'+p.name+'</div><div class="sc-desc">'+p.desc+'</div><div class="sc-tags">'+badgeHtml+'</div><div class="sc-price-row"><span class="sc-price">¥<span class="yen">'+formatPrice(p.price)+'</span></span><span class="sc-orig-price">¥'+formatPrice(p.origPrice)+'</span></div><button class="sc-btn" data-buy="'+pid+'">🛒 立即购买</button></div>';
   });
   return html;
 }
 
 function renderShopBundle(){
-  let html = '';
-  const bundles = ['bundle_rw','bundle_rr','bundle_all'];
-  bundles.forEach(function(bid) {
-    const p = SHOP_PRODUCTS[bid];
-    if(!p) return;
-    let badgeHtml = '';
-    p.tags.forEach(function(t) { badgeHtml += '<span class="sc-tag">' + t + '</span>'; });
-    let itemsHtml = '<div class="bc-items">';
-    if(p.bundleItems) {
-      p.bundleItems.forEach(function(iid) {
-        const item = SHOP_PRODUCTS[iid];
-        if(item) itemsHtml += '<div class="bc-item"><div class="bc-item-icon">' + item.icon + '</div><div class="bc-item-name">' + item.name + '</div></div>';
+  let html='';
+  const bundles=['bundle_rw','bundle_rr','bundle_all'];
+  bundles.forEach(function(bid){
+    const p=SHOP_PRODUCTS[bid];if(!p)return;
+    let badgeHtml='';
+    p.tags.forEach(function(t){badgeHtml+='<span class="sc-tag">'+t+'</span>';});
+    let itemsHtml='<div class="bc-items">';
+    if(p.bundleItems){
+      p.bundleItems.forEach(function(iid){
+        const item=SHOP_PRODUCTS[iid];if(item)itemsHtml+='<div class="bc-item"><div class="bc-item-icon">'+item.icon+'</div><div class="bc-item-name">'+item.name+'</div></div>';
       });
     }
-    itemsHtml += '</div>';
-    html += '<div class="bundle-card">' +
-      '<div class="bc-badge">' + (p.tags[0] || '') + '</div>' +
-      '<div class="bc-title">' + p.name + '</div>' +
-      '<div class="bc-desc">' + p.desc + '</div>' +
-      itemsHtml +
-      '<div class="bc-price-row">' +
-        '<span class="bc-price">¥<span class="yen">' + formatPrice(p.price) + '</span></span>' +
-        '<span class="bc-orig">¥' + formatPrice(p.origPrice) + '</span>' +
-        '<span class="bc-save">省¥' + formatPrice(p.saveAmount) + '</span>' +
-      '</div>' +
-      '<button class="bc-btn" onclick="goBuy(\'' + bid + '\')">🛒 立即购买</button>' +
-    '</div>';
+    itemsHtml+='</div>';
+    html+='<div class="bundle-card" data-bid="'+bid+'"><div class="bc-badge">'+(p.tags[0]||'')+'</div><div class="bc-title">'+p.name+'</div><div class="bc-desc">'+p.desc+'</div>'+itemsHtml+'<div class="bc-price-row"><span class="bc-price">¥<span class="yen">'+formatPrice(p.price)+'</span></span><span class="bc-orig">¥'+formatPrice(p.origPrice)+'</span><span class="bc-save">省¥'+formatPrice(p.saveAmount)+'</span></div><button class="bc-btn" data-buy="'+bid+'">🛒 立即购买</button></div>';
   });
   return html;
 }
+
+// ── Shop event delegation (avoid inline onclick escaping issues)
+document.addEventListener('click', function(e){
+  var t=e.target;
+  // Shop card click -> open popup
+  var card=t.closest('.shop-card');
+  if(card && !t.hasAttribute('data-buy')){
+    openShopPopup(card.getAttribute('data-pid'));return;
+  }
+  // Buy button click
+  var buyBtn=t.closest('[data-buy]');
+  if(buyBtn){
+    e.stopPropagation();
+    goBuy(buyBtn.getAttribute('data-buy'));return;
+  }
+  // Bundle card click
+  var bc=t.closest('.bundle-card');
+  if(bc && !t.hasAttribute('data-buy')){
+    openShopPopup(bc.getAttribute('data-bid'));return;
+  }
+});
 
 // ── Init ──
 render();
