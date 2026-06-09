@@ -166,6 +166,229 @@ body{font-family:system-ui,-apple-system,'Helvetica Neue',sans-serif;background:
 .game-hist-num{font-family:'Courier New',monospace;font-size:16px;font-weight:800;color:var(--text-muted);width:28px;text-align:center;flex-shrink:0}
 .game-hist-name{flex:1;font-size:13px;font-weight:600;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
 .game-hist-score{font-family:'Courier New',monospace;font-size:16px;font-weight:800;color:var(--brand);flex-shrink:0}
+/* Item / Props */
+.item-bar{display:flex;gap:8px;margin-bottom:12px;justify-content:center}
+.item-slot{position:relative;width:80px;background:var(--surface);border-radius:var(--radius-md);padding:10px 6px 8px;text-align:center;cursor:pointer;border:2px solid var(--border);transition:all .2s;user-select:none;-webkit-tap-highlight-color:transparent}
+.item-slot:active{transform:scale(.93)}
+.item-slot.owned{border-color:var(--brand)}
+.item-slot.active{border-color:var(--success);box-shadow:0 0 12px rgba(16,185,129,.35);animation:item-glow 1s ease-in-out infinite alternate}
+.item-slot.locked{cursor:not-allowed;opacity:.5}
+.item-slot .item-icon{font-size:28px;line-height:1;margin-bottom:4px;display:block}
+.item-slot .item-name{font-size:10px;font-weight:700;color:var(--text-secondary);line-height:1.2;margin-bottom:2px;display:block}
+.item-slot .item-tag{font-size:9px;padding:1px 5px;border-radius:var(--radius-full);display:inline-block;font-weight:600}
+.item-tag-free{background:rgba(16,185,129,.15);color:var(--success)}
+.item-tag-cost{background:rgba(245,158,11,.15);color:var(--brand)}
+.item-tag-event{background:rgba(139,92,246,.15);color:#8B5CF6}
+.item-tag-lock{background:rgba(239,68,68,.15);color:var(--danger)}
+.item-cd{position:absolute;inset:0;background:rgba(10,14,26,.82);border-radius:calc(var(--radius-md) - 2px);display:flex;flex-direction:column;align-items:center;justify-content:center;z-index:5;font-size:13px;font-weight:800;color:var(--brand);font-family:'Courier New',monospace}
+.item-cd .cd-icon{font-size:14px;margin-bottom:2px;animation:spin 1s linear infinite}
+@keyframes spin{to{transform:rotate(360deg)}}
+@keyframes item-glow{0%{box-shadow:0 0 8px rgba(16,185,129,.2)}100%{box-shadow:0 0 18px rgba(16,185,129,.5)}}
+/* Shock effect */
+.shock-overlay{position:fixed;inset:0;z-index:500;pointer-events:none;display:flex;align-items:center;justify-content:center}
+.shock-overlay .shock-flash{position:absolute;inset:0;background:radial-gradient(circle at center, rgba(245,158,11,.25), rgba(59,130,246,.12), transparent 70%);animation:shock-flash .45s ease-out forwards}
+.shock-overlay .shock-bolt{position:relative;z-index:2;font-size:120px;line-height:1;filter:drop-shadow(0 0 40px rgba(245,158,11,.8)) drop-shadow(0 0 80px rgba(59,130,246,.4));animation:shock-bolt .45s cubic-bezier(.34,1.56,.64,1) forwards;opacity:0}
+.shock-overlay .shock-bolt.b2{font-size:80px;left:30%;top:20%;animation-delay:.05s}
+.shock-overlay .shock-bolt.b3{font-size:60px;right:25%;bottom:30%;animation-delay:.1s}
+@keyframes shock-flash{0%{opacity:1;transform:scale(1)}40%{opacity:.8;transform:scale(1.05)}100%{opacity:0;transform:scale(1.1)}}
+@keyframes shock-bolt{0%{opacity:0;transform:scale(.3) rotate(-20deg)}30%{opacity:1;transform:scale(1.2) rotate(5deg)}60%{opacity:1;transform:scale(1) rotate(0)}100%{opacity:0;transform:scale(.7) rotate(10deg)}}
+/* Multiplier badge */
+.multi-badge{position:absolute;top:8px;right:8px;z-index:25;background:linear-gradient(135deg,var(--brand),#EF4444);color:#000;font-size:13px;font-weight:900;padding:3px 10px;border-radius:var(--radius-full);font-family:'Courier New',monospace;animation:pop .3s ease-out;box-shadow:0 0 12px rgba(245,158,11,.4)}
+/* Watch Device */
+.watch-device-card{background:var(--surface);border-radius:var(--radius-lg);padding:16px;margin-bottom:12px;border:1px solid var(--border);transition:border-color .2s}
+.watch-device-card.bound{border-color:var(--success)}
+.watch-device-card .watch-header{display:flex;align-items:center;gap:12px;margin-bottom:12px}
+.watch-device-card .watch-icon{font-size:32px;line-height:1}
+.watch-device-card .watch-info{flex:1}
+.watch-device-card .watch-name{font-size:15px;font-weight:700}
+.watch-device-card .watch-model{font-size:11px;color:var(--text-muted);margin-top:2px}
+.watch-device-card .watch-status-row{display:flex;gap:12px;margin-bottom:12px}
+.watch-device-card .watch-stat{flex:1;background:var(--surface-elevated);border-radius:var(--radius-sm);padding:8px;text-align:center}
+.watch-device-card .watch-stat-val{font-size:16px;font-weight:800;font-family:'Courier New',monospace}
+.watch-device-card .watch-stat-lbl{font-size:10px;color:var(--text-muted);margin-top:2px}
+.watch-device-card .watch-actions{display:flex;gap:8px}
+.watch-device-card .watch-actions button{flex:1}
+/* Heart Rate */
+.heart-rate-display{display:flex;align-items:center;gap:6px;padding:8px 12px;background:rgba(239,68,68,.08);border-radius:var(--radius-sm);border:1px solid rgba(239,68,68,.2);margin-bottom:12px;animation:hr-pulse 1s ease-in-out infinite}
+.heart-rate-display .hr-icon{font-size:18px;animation:hr-beat 1s ease-in-out infinite}
+.heart-rate-display .hr-val{font-size:20px;font-weight:900;font-family:'Courier New',monospace;color:var(--danger)}
+.heart-rate-display .hr-label{font-size:10px;color:var(--text-muted);margin-left:auto}
+@keyframes hr-pulse{0%,100%{opacity:1}50%{opacity:.7}}
+@keyframes hr-beat{0%,100%{transform:scale(1)}15%{transform:scale(1.25)}30%{transform:scale(1)}45%{transform:scale(1.15)}60%{transform:scale(1)}}
+/* Watch Notification */
+.watch-notification{position:fixed;top:60px;left:50%;transform:translateX(-50%) translateY(-20px);z-index:300;background:var(--surface-elevated);border-radius:var(--radius-md);padding:12px 18px;box-shadow:0 8px 32px rgba(0,0,0,.5);border:1px solid var(--border);opacity:0;transition:all .3s ease-out;pointer-events:none;max-width:320px;width:90%}
+.watch-notification.show{opacity:1;transform:translateX(-50%) translateY(0)}
+.watch-notification .wn-header{display:flex;align-items:center;gap:8px;margin-bottom:6px}
+.watch-notification .wn-icon{font-size:18px}
+.watch-notification .wn-title{font-size:13px;font-weight:700;color:var(--brand)}
+.watch-notification .wn-body{font-size:12px;color:var(--text-secondary);line-height:1.4}
+.watch-notification .wn-time{font-size:10px;color:var(--text-muted);margin-top:4px}
+/* Briefing Modal */
+.briefing-content{text-align:left;padding:8px 0}
+.briefing-content .bc-row{display:flex;justify-content:space-between;align-items:center;padding:8px 0;border-bottom:1px solid var(--border)}
+.briefing-content .bc-row:last-child{border-bottom:none}
+.briefing-content .bc-label{font-size:13px;color:var(--text-secondary)}
+.briefing-content .bc-value{font-size:15px;font-weight:800;font-family:'Courier New',monospace;color:var(--brand)}
+.briefing-content .bc-highlight{background:rgba(245,158,11,.1);border-radius:var(--radius-sm);padding:10px;margin-top:8px;text-align:center}
+.briefing-content .bc-highlight .bch-val{font-size:28px;font-weight:900;font-family:'Courier New',monospace;color:var(--brand)}
+.briefing-content .bc-highlight .bch-lbl{font-size:11px;color:var(--text-muted);margin-top:2px}
+/* Watch scan result */
+.scan-device.watch-option{border-color:var(--info);background:rgba(59,130,246,.05)}
+.scan-device.watch-option .dev-name{color:var(--info)}
+/* Ring Device */
+.ring-device-card{background:var(--surface);border-radius:var(--radius-lg);padding:16px;margin-bottom:12px;border:1px solid var(--border);transition:border-color .2s}
+.ring-device-card.bound{border-color:var(--success)}
+.ring-device-card .ring-header{display:flex;align-items:center;gap:12px;margin-bottom:12px}
+.ring-device-card .ring-icon{font-size:32px;line-height:1}
+.ring-device-card .ring-info{flex:1}
+.ring-device-card .ring-name{font-size:15px;font-weight:700}
+.ring-device-card .ring-model{font-size:11px;color:var(--text-muted);margin-top:2px}
+.ring-device-card .ring-status-row{display:flex;gap:12px;margin-bottom:12px}
+.ring-device-card .ring-stat{flex:1;background:var(--surface-elevated);border-radius:var(--radius-sm);padding:8px;text-align:center}
+.ring-device-card .ring-stat-val{font-size:16px;font-weight:800;font-family:'Courier New',monospace}
+.ring-device-card .ring-stat-lbl{font-size:10px;color:var(--text-muted);margin-top:2px}
+.ring-device-card .ring-actions{display:flex;gap:8px}
+.ring-device-card .ring-actions button{flex:1}
+/* Glasses Device */
+.glasses-device-card{background:var(--surface);border-radius:var(--radius-lg);padding:16px;margin-bottom:12px;border:1px solid var(--border);transition:border-color .2s}
+.glasses-device-card.bound{border-color:var(--success)}
+.glasses-device-card .glasses-header{display:flex;align-items:center;gap:12px;margin-bottom:12px}
+.glasses-device-card .glasses-icon{font-size:32px;line-height:1}
+.glasses-device-card .glasses-info{flex:1}
+.glasses-device-card .glasses-name{font-size:15px;font-weight:700}
+.glasses-device-card .glasses-model{font-size:11px;color:var(--text-muted);margin-top:2px}
+.glasses-device-card .glasses-status-row{display:flex;gap:12px;margin-bottom:12px}
+.glasses-device-card .glasses-stat{flex:1;background:var(--surface-elevated);border-radius:var(--radius-sm);padding:8px;text-align:center}
+.glasses-device-card .glasses-stat-val{font-size:16px;font-weight:800;font-family:'Courier New',monospace}
+.glasses-device-card .glasses-stat-lbl{font-size:10px;color:var(--text-muted);margin-top:2px}
+.glasses-device-card .glasses-actions{display:flex;gap:8px}
+.glasses-device-card .glasses-actions button{flex:1}
+/* Scan device options */
+.scan-device.ring-option{border-color:var(--brand);background:rgba(245,158,11,.05)}
+.scan-device.ring-option .dev-name{color:var(--brand)}
+.scan-device.glasses-option{border-color:#8B5CF6;background:rgba(139,92,246,.05)}
+.scan-device.glasses-option .dev-name{color:#8B5CF6}
+/* Game mode switches */
+.game-mode-switch{display:flex;align-items:center;justify-content:space-between;padding:12px 14px;background:var(--surface);border-radius:var(--radius-md);margin-bottom:8px;border:1px solid var(--border)}
+.game-mode-switch .gms-label{display:flex;align-items:center;gap:8px;font-size:14px;font-weight:600}
+.game-mode-switch .gms-label .gms-icon{font-size:20px}
+.game-mode-switch .gms-hint{font-size:10px;color:var(--text-muted);margin-top:2px}
+/* Toggle switch */
+.toggle-switch{position:relative;width:48px;height:28px;background:var(--surface-elevated);border-radius:14px;cursor:pointer;transition:background .2s;border:1px solid var(--border)}
+.toggle-switch.active{background:var(--brand);border-color:var(--brand)}
+.toggle-switch .toggle-knob{position:absolute;top:3px;left:3px;width:22px;height:22px;background:#fff;border-radius:50%;transition:transform .2s;box-shadow:0 1px 3px rgba(0,0,0,.3)}
+.toggle-switch.active .toggle-knob{transform:translateX(20px)}
+/* Check-in */
+.checkin-hero{text-align:center;padding:20px 0 12px;margin-bottom:4px}
+.checkin-hero .ch-icon{font-size:42px;line-height:1;margin-bottom:6px}
+.checkin-hero .ch-title{font-size:17px;font-weight:800;color:var(--brand);margin-bottom:3px}
+.checkin-hero .ch-sub{font-size:11px;color:var(--text-muted)}
+.checkin-form{background:var(--surface);border-radius:var(--radius-lg);padding:16px;margin-bottom:12px;border:1px solid var(--border)}
+.checkin-form .cf-label{font-size:13px;font-weight:700;color:var(--text-secondary);margin-bottom:8px;display:block}
+.checkin-form .cf-input{width:100%;padding:12px 14px;border-radius:var(--radius-sm);border:1px solid var(--border);background:var(--surface-elevated);color:var(--text-primary);font-size:18px;font-family:'Courier New',monospace;font-weight:800;text-align:center;outline:none;transition:border .2s}
+.checkin-form .cf-input:focus{border-color:var(--brand)}
+.checkin-form .cf-hint{font-size:10px;color:var(--text-muted);margin-top:4px;text-align:center}
+.checkin-upload{margin-top:14px;margin-bottom:14px}
+.checkin-upload-area{position:relative;border:2px dashed var(--border);border-radius:var(--radius-md);padding:20px 12px;text-align:center;cursor:pointer;transition:all .2s;overflow:hidden}
+.checkin-upload-area:active{border-color:var(--brand);background:rgba(245,158,11,.05)}
+.checkin-upload-area.has-image{border-style:solid;border-color:var(--success);padding:6px}
+.checkin-upload-area .cua-icon{font-size:28px;line-height:1;margin-bottom:4px;display:block}
+.checkin-upload-area .cua-text{font-size:12px;color:var(--text-secondary)}
+.checkin-upload-area .cua-hint{font-size:10px;color:var(--text-muted);margin-top:3px}
+.checkin-upload-area input[type="file"]{position:absolute;inset:0;opacity:0;cursor:pointer;font-size:0}
+.checkin-preview{position:relative;display:inline-block;max-width:100%}
+.checkin-preview img{width:100%;max-height:140px;object-fit:cover;border-radius:var(--radius-sm)}
+.checkin-preview .cp-remove{position:absolute;top:4px;right:4px;width:22px;height:22px;border-radius:50%;background:rgba(0,0,0,.7);color:#fff;border:none;font-size:13px;cursor:pointer;display:flex;align-items:center;justify-content:center;line-height:1}
+.checkin-submit{width:100%;margin-top:12px}
+.checkin-records{margin-top:16px}
+.checkin-record{display:flex;gap:10px;padding:10px 12px;background:var(--surface);border-radius:var(--radius-md);margin-bottom:6px;border:1px solid var(--border);cursor:pointer;transition:border-color .2s}
+.checkin-record:active{border-color:var(--brand)}
+.checkin-record .cr-img{width:52px;height:52px;border-radius:var(--radius-sm);object-fit:cover;flex-shrink:0;background:var(--surface-elevated)}
+.checkin-record .cr-info{flex:1;display:flex;flex-direction:column;justify-content:center;min-width:0}
+.checkin-record .cr-kills{font-size:15px;font-weight:800;font-family:'Courier New',monospace;color:var(--brand)}
+.checkin-record .cr-date{font-size:11px;color:var(--text-muted);margin-top:2px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.checkin-record .cr-points{font-size:11px;color:var(--success);margin-top:2px}
+.checkin-empty{text-align:center;padding:28px 0;color:var(--text-muted);font-size:13px}
+.checkin-empty .ce-icon{font-size:32px;line-height:1;margin-bottom:6px;opacity:.5}
+.ci-points-awarded{background:var(--surface-elevated);border-radius:var(--radius-md);padding:12px 16px;margin-bottom:12px;text-align:center;border:1px solid var(--border)}
+.ci-points-awarded .cpa-val{font-size:28px;font-weight:900;font-family:'Courier New',monospace;color:var(--brand)}
+.ci-points-awarded .cpa-label{font-size:11px;color:var(--text-muted);margin-top:2px}
+/* Shop / Monetization */
+.shop-hero{text-align:center;padding:20px 0 12px;margin-bottom:4px}
+.shop-hero .sh-icon{font-size:42px;line-height:1;margin-bottom:6px}
+.shop-hero .sh-title{font-size:17px;font-weight:800;color:var(--brand);margin-bottom:3px}
+.shop-hero .sh-sub{font-size:11px;color:var(--text-muted)}
+.shop-section{margin-bottom:16px}
+.shop-section-title{font-size:14px;font-weight:700;color:var(--text-secondary);margin-bottom:8px;display:flex;align-items:center;gap:6px}
+.shop-card{background:var(--surface);border-radius:var(--radius-lg);padding:14px;margin-bottom:10px;border:1px solid var(--border);transition:border-color .2s;cursor:pointer;position:relative;overflow:hidden}
+.shop-card:active{border-color:var(--brand)}
+.shop-card .sc-badge{position:absolute;top:10px;right:-28px;background:var(--danger);color:#fff;font-size:10px;font-weight:700;padding:3px 32px;transform:rotate(35deg)}
+.shop-card .sc-badge.hot{background:var(--danger)}
+.shop-card .sc-badge.new{background:var(--info)}
+.shop-card .sc-badge.sale{background:var(--brand);color:#000}
+.shop-card .sc-img{width:100%;height:140px;background:var(--surface-elevated);border-radius:var(--radius-md);display:flex;align-items:center;justify-content:center;font-size:56px;margin-bottom:10px;overflow:hidden}
+.shop-card .sc-img img{width:100%;height:100%;object-fit:cover}
+.shop-card .sc-name{font-size:15px;font-weight:700;margin-bottom:4px}
+.shop-card .sc-desc{font-size:11px;color:var(--text-muted);margin-bottom:8px;line-height:1.4}
+.shop-card .sc-tags{display:flex;gap:4px;flex-wrap:wrap;margin-bottom:8px}
+.shop-card .sc-tag{font-size:9px;padding:2px 6px;border-radius:var(--radius-full);background:rgba(245,158,11,.12);color:var(--brand);font-weight:600}
+.shop-card .sc-price-row{display:flex;align-items:baseline;gap:8px;margin-bottom:10px}
+.shop-card .sc-price{font-size:22px;font-weight:900;font-family:'Courier New',monospace;color:var(--danger)}
+.shop-card .sc-price .yen{font-size:13px}
+.shop-card .sc-orig-price{font-size:12px;color:var(--text-muted);text-decoration:line-through;font-family:'Courier New',monospace}
+.shop-card .sc-btn{width:100%;padding:10px;border-radius:var(--radius-sm);border:none;background:var(--brand);color:#000;font-size:14px;font-weight:700;cursor:pointer;transition:opacity .15s}
+.shop-card .sc-btn:active{opacity:.85}
+.shop-card .sc-btn.sold-out{background:var(--surface-elevated);color:var(--text-muted);cursor:not-allowed}
+/* Bundle/Combo */
+.bundle-card{background:linear-gradient(135deg,rgba(245,158,11,.08),rgba(16,185,129,.08));border:1px solid rgba(245,158,11,.25);border-radius:var(--radius-lg);padding:16px;margin-bottom:12px;position:relative;overflow:hidden}
+.bundle-card .bc-badge{position:absolute;top:0;right:0;background:var(--brand);color:#000;font-size:10px;font-weight:700;padding:4px 10px 4px 14px;border-radius:0 var(--radius-lg) 0 var(--radius-md)}
+.bundle-card .bc-title{font-size:15px;font-weight:800;color:var(--brand);margin-bottom:6px}
+.bundle-card .bc-desc{font-size:11px;color:var(--text-secondary);margin-bottom:12px;line-height:1.4}
+.bundle-card .bc-items{display:flex;gap:8px;margin-bottom:12px;overflow-x:auto}
+.bundle-card .bc-item{flex:1;min-width:80px;background:var(--surface);border-radius:var(--radius-md);padding:10px 6px;text-align:center;border:1px solid var(--border)}
+.bundle-card .bc-item-icon{font-size:28px;line-height:1;margin-bottom:4px}
+.bundle-card .bc-item-name{font-size:10px;font-weight:700;color:var(--text-secondary);margin-bottom:2px}
+.bundle-card .bc-item-price{font-size:11px;color:var(--text-muted);font-family:'Courier New',monospace}
+.bundle-card .bc-price-row{display:flex;align-items:baseline;gap:8px;margin-bottom:12px}
+.bundle-card .bc-price{font-size:24px;font-weight:900;font-family:'Courier New',monospace;color:var(--danger)}
+.bundle-card .bc-price .yen{font-size:14px}
+.bundle-card .bc-orig{font-size:12px;color:var(--text-muted);text-decoration:line-through;font-family:'Courier New',monospace}
+.bundle-card .bc-save{font-size:11px;color:var(--success);font-weight:700;margin-left:4px}
+.bundle-card .bc-btn{width:100%;padding:12px;border-radius:var(--radius-sm);border:none;background:linear-gradient(135deg,var(--brand),#EF4444);color:#fff;font-size:15px;font-weight:800;cursor:pointer;transition:opacity .15s}
+.bundle-card .bc-btn:active{opacity:.85}
+/* Game shop popup */
+.game-shop-popup{position:fixed;inset:0;z-index:500;display:flex;align-items:center;justify-content:center;background:rgba(0,0,0,.65);opacity:0;pointer-events:none;transition:opacity .25s}
+.game-shop-popup.show{opacity:1;pointer-events:auto}
+.game-shop-popup .gsp-box{background:var(--surface-elevated);border-radius:var(--radius-lg);padding:20px;max-width:320px;width:90%;border:1px solid var(--border);transform:translateY(20px);transition:transform .25s}
+.game-shop-popup.show .gsp-box{transform:translateY(0)}
+.game-shop-popup .gsp-icon{font-size:48px;line-height:1;margin-bottom:8px;text-align:center}
+.game-shop-popup .gsp-name{font-size:17px;font-weight:800;text-align:center;margin-bottom:4px}
+.game-shop-popup .gsp-desc{font-size:12px;color:var(--text-secondary);text-align:center;margin-bottom:10px;line-height:1.4}
+.game-shop-popup .gsp-feats{margin-bottom:12px}
+.game-shop-popup .gsp-feat{display:flex;align-items:center;gap:6px;padding:4px 0;font-size:12px;color:var(--text-primary)}
+.game-shop-popup .gsp-feat .gf-dot{width:6px;height:6px;border-radius:50%;background:var(--success);flex-shrink:0}
+.game-shop-popup .gsp-price{text-align:center;margin-bottom:14px}
+.game-shop-popup .gsp-price .gp-val{font-size:26px;font-weight:900;font-family:'Courier New',monospace;color:var(--danger)}
+.game-shop-popup .gsp-price .gp-yen{font-size:14px}
+.game-shop-popup .gsp-btn{width:100%;padding:12px;border-radius:var(--radius-sm);border:none;background:var(--brand);color:#000;font-size:15px;font-weight:700;cursor:pointer;transition:opacity .15s}
+.game-shop-popup .gsp-btn:active{opacity:.85}
+.game-shop-popup .gsp-close{margin-top:10px;width:100%;padding:8px;border:none;background:transparent;color:var(--text-muted);font-size:13px;cursor:pointer}
+/* Device buy button */
+.device-buy-btn{margin-top:10px;width:100%;padding:10px;border-radius:var(--radius-sm);border:1px solid var(--brand);background:transparent;color:var(--brand);font-size:13px;font-weight:700;cursor:pointer;transition:all .2s}
+.device-buy-btn:active{background:var(--brand);color:#000}
+/* Post-game shop card */
+.postgame-shop{margin-top:12px;background:var(--surface);border-radius:var(--radius-lg);padding:12px;border:1px solid var(--border)}
+.postgame-shop .ps-title{font-size:13px;font-weight:700;color:var(--brand);margin-bottom:8px;display:flex;align-items:center;gap:6px}
+.postgame-shop .ps-card{display:flex;gap:10px;align-items:center}
+.postgame-shop .ps-icon{font-size:36px;flex-shrink:0}
+.postgame-shop .ps-info{flex:1}
+.postgame-shop .ps-name{font-size:13px;font-weight:700;margin-bottom:2px}
+.postgame-shop .ps-price{font-size:16px;font-weight:800;font-family:'Courier New',monospace;color:var(--danger)}
+.postgame-shop .ps-price .yen{font-size:11px}
+.postgame-shop .ps-btn{padding:8px 14px;border-radius:var(--radius-sm);border:none;background:var(--brand);color:#000;font-size:12px;font-weight:700;cursor:pointer;flex-shrink:0;transition:opacity .15s}
+.postgame-shop .ps-btn:active{opacity:.85}
+/* Shop tab in nav */
+.nav-item.shop-active{color:var(--brand)}
 </style>
 </head>
 <body>
@@ -182,7 +405,21 @@ const S={
   tab:0,
   scanning:false,
   scanResults:[],
-  gameHighScore:parseInt(localStorage.getItem('mk_ghs'))||0
+  gameHighScore:parseInt(localStorage.getItem('mk_ghs'))||0,
+  // Watch state
+  watchBound:localStorage.getItem('mk_watch_bound')==='1',
+  watchBattery:parseInt(localStorage.getItem('mk_watch_bat'))||78,
+  watchSignal:localStorage.getItem('mk_watch_sig')||'-48',
+  watchHeartRate:72,
+  watchNotifEnabled:true,
+  // Ring state
+  ringBound:localStorage.getItem('mk_ring_bound')==='1',
+  ringBattery:parseInt(localStorage.getItem('mk_ring_bat'))||85,
+  ringSignal:localStorage.getItem('mk_ring_sig')||'-52',
+  // Glasses state
+  glassesBound:localStorage.getItem('mk_glasses_bound')==='1',
+  glassesBattery:parseInt(localStorage.getItem('mk_glasses_bat'))||72,
+  glassesSignal:localStorage.getItem('mk_glasses_sig')||'-55'
 };
 
 const BADGES=[
@@ -213,7 +450,343 @@ const SESSIONS=[
 function save(){
   ['today','week','month','season'].forEach(k=>localStorage.setItem('mk_'+k,S[k]));
   localStorage.setItem('mk_log',S.loggedIn?'1':'0');
+  // Save watch state
+  localStorage.setItem('mk_watch_bound',S.watchBound?'1':'0');
+  localStorage.setItem('mk_watch_bat',String(S.watchBattery));
+  localStorage.setItem('mk_watch_sig',S.watchSignal);
+  // Save ring state
+  localStorage.setItem('mk_ring_bound',S.ringBound?'1':'0');
+  localStorage.setItem('mk_ring_bat',String(S.ringBattery));
+  localStorage.setItem('mk_ring_sig',S.ringSignal);
+  // Save glasses state
+  localStorage.setItem('mk_glasses_bound',S.glassesBound?'1':'0');
+  localStorage.setItem('mk_glasses_bat',String(S.glassesBattery));
+  localStorage.setItem('mk_glasses_sig',S.glassesSignal);
 }
+
+// ── Watch Functions ──
+let hrTimer=null; // Heart rate timer
+let hrValue=72; // Current heart rate
+
+function showWatchNotification(title,body){
+  if(!S.watchBound||!S.watchNotifEnabled)return;
+  const el=document.getElementById('watchNotif');
+  if(!el)return;
+  el.querySelector('.wn-title').textContent=title;
+  el.querySelector('.wn-body').textContent=body;
+  el.querySelector('.wn-time').textContent=new Date().toLocaleTimeString('zh-CN',{hour:'2-digit',minute:'2-digit'});
+  el.classList.add('show');
+  setTimeout(()=>el.classList.remove('show'),3000);
+}
+
+function startHeartRate(){
+  stopHeartRate();
+  hrValue=72;
+  hrTimer=setInterval(()=>{
+    // Simulate heart rate fluctuation (60-140 during game)
+    const delta=(Math.random()-0.5)*8;
+    hrValue=Math.max(60,Math.min(140,hrValue+delta));
+    hrValue=Math.round(hrValue);
+    S.watchHeartRate=hrValue;
+    updateHeartRateDisplay();
+  },1000);
+}
+
+function stopHeartRate(){
+  if(hrTimer){clearInterval(hrTimer);hrTimer=null}
+  hrValue=72;
+  S.watchHeartRate=72;
+  updateHeartRateDisplay();
+}
+
+function updateHeartRateDisplay(){
+  const el=document.getElementById('heartRateVal');
+  if(el)el.textContent=S.watchHeartRate;
+}
+
+function applyWatchCooldownReduction(cd){
+  // Watch reduces cooldown by 30%
+  if(S.watchBound)return Math.round(cd*0.7);
+  return cd;
+}
+
+function showGameBriefing(score,todayKills,seasonKills){
+  if(!S.watchBound)return;
+  // Show briefing on watch notification
+  const summary=`击杀${score}只 · 累计${S.today}只`;
+  showWatchNotification('🎮 游戏战绩简报',summary);
+  // Also show a briefing modal to simulate watch display
+  const m=document.getElementById('modal'),box=document.getElementById('modalBox');
+  if(!m||!box)return;
+  box.innerHTML=`<div class="modal-icon">⌚</div>
+    <h3>⌚ 手表战绩简报</h3>
+    <div class="briefing-content">
+      <div class="bc-row"><span class="bc-label">本次击杀</span><span class="bc-value">${score} 只</span></div>
+      <div class="bc-row"><span class="bc-label">今日累计</span><span class="bc-value">${S.today} 只</span></div>
+      <div class="bc-row"><span class="bc-label">赛季累计</span><span class="bc-value">${S.season} 只</span></div>
+      <div class="bc-highlight">
+        <div class="bch-val">${score>0?Math.round(score/10*100)+'%':'0%'}</div>
+        <div class="bch-lbl">击杀效率</div>
+      </div>
+    </div>
+    <button class="modal-close" onclick="closeModal()">知道了</button>`;
+  m.classList.add('show');
+}
+
+function simulateWatchRemote(action){
+  // Simulate watch remote control
+  if(!S.watchBound){alert('未绑定智能手表！');return}
+  if(action==='start'){
+    if(S.sessionActive){alert('⚡ 出击模式已在运行中');return}
+    startSession();
+    showWatchNotification('⚡ 出击模式已启动','手表远程触发成功');
+  }else if(action==='stop'){
+    if(!S.sessionActive){alert('⚡ 出击模式未在运行');return}
+    endSession();
+    showWatchNotification('⏹ 出击模式已停止','手表远程触发成功');
+  }
+}
+
+
+// ── Shop Products ──
+const SHOP_PRODUCTS={
+  racket:{
+    id:'racket',name:'八万Pro X1 智能电蚊拍',icon:'🔋',
+    price:12900,origPrice:16900,
+    desc:'60cm加长手柄 · 4000V高压电网 · BLE 5.0智能联动 · 42天超长待机',
+    features:['60cm加长手柄，安全防触电','4000V高压电网，一击必杀','BLE 5.0智能联动，数据实时同步','Type-C快充，42天超长待机'],
+    tags:['热销','新品'],
+    buyUrl:'https://example.com/shop/racket-pro-x1'
+  },
+  watch:{
+    id:'watch',name:'八万Watch Pro 智能手表',icon:'⌚',
+    price:29900,origPrice:39900,
+    desc:'心率监测 · 灭蚊提醒 · 战绩简报推送 · 30天续航 · 5ATM防水',
+    features:['实时心率监测，游戏时同步显示','灭蚊提醒，定时运动更健康','战绩简报推送，随时查看成绩','30天超长续航，5ATM防水'],
+    tags:['旗舰'],
+    buyUrl:'https://example.com/shop/watch-pro'
+  },
+  ring:{
+    id:'ring',name:'八万Ring S1 智能指环',icon:'💍',
+    price:8900,origPrice:9900,
+    desc:'超轻8g · 睡眠监测 · 灭蚊手势识别 · 15天续航',
+    features:['超轻8g，佩戴无感','睡眠监测，健康全天跟踪','灭蚊手势识别，挥手即杀','15天超长续航'],
+    tags:['轻便'],
+    buyUrl:'https://example.com/shop/ring-s1'
+  },
+  bundle_rw:{
+    id:'bundle_rw',name:'电蚊拍+手表 超值套装',icon:'🔋⌚',
+    price:39900,origPrice:42800,
+    desc:'八万Pro X1 + Watch Pro 组合套装，专属联动功能',
+    features:['八万Pro X1 智能电蚊拍 ×1','Watch Pro 智能手表 ×1','套装专属：手表远程控制电蚊拍','套装专属：心率联动游戏倍率'],
+    tags:['超值','推荐'],
+    bundleItems:['racket','watch'],
+    saveAmount:2900,
+    buyUrl:'https://example.com/shop/bundle-racket-watch'
+  },
+  bundle_rr:{
+    id:'bundle_rr',name:'电蚊拍+指环 便携套装',icon:'🔋💍',
+    price:19900,origPrice:21800,
+    desc:'八万Pro X1 + Ring S1 组合套装，随时随地灭蚊',
+    features:['八万Pro X1 智能电蚊拍 ×1','Ring S1 智能指环 ×1','套装专属：指环手势触发连杀','套装专属：双设备数据融合统计'],
+    tags:['便携'],
+    bundleItems:['racket','ring'],
+    saveAmount:1900,
+    buyUrl:'https://example.com/shop/bundle-racket-ring'
+  },
+  bundle_all:{
+    id:'bundle_all',name:'八万全家桶 旗舰套装',icon:'🔋⌚💍',
+    price:49900,origPrice:61700,
+    desc:'电蚊拍+手表+指环 三件套，全场景智能灭蚊',
+    features:['八万Pro X1 智能电蚊拍 ×1','Watch Pro 智能手表 ×1','Ring S1 智能指环 ×1','全套专属：三设备智能联动','全套专属：VIP会员12个月'],
+    tags:['旗舰','超值','限定'],
+    bundleItems:['racket','watch','ring'],
+    saveAmount:11800,
+    buyUrl:'https://example.com/shop/bundle-all'
+  }
+};
+
+function formatPrice(cents){
+  return (cents/100).toFixed(2);
+}
+
+function openShopPopup(productId){
+  const p=SHOP_PRODUCTS[productId];
+  if(!p)return;
+  const m=document.getElementById('gameShopPopup');
+  const box=document.getElementById('gameShopBox');
+  if(!m||!box)return;
+  let featuresHtml=p.features.map(f=>`<div class="gsp-feat"><span class="gf-dot"></span>${f}</div>`).join('');
+  box.innerHTML=`
+    <div class="gsp-icon">${p.icon}</div>
+    <div class="gsp-name">${p.name}</div>
+    <div class="gsp-desc">${p.desc}</div>
+    <div class="gsp-feats">${featuresHtml}</div>
+    <div class="gsp-price">
+      <span class="gp-val">¥<span class="gp-yen">${formatPrice(p.price)}</span></span>
+      <span class="gp-orig">¥${formatPrice(p.origPrice)}</span>
+    </div>
+    <button class="gsp-btn" onclick="goBuy('${p.id}')">🛒 立即购买</button>
+    <button class="gsp-close" onclick="closeShopPopup()">暂不需要</button>
+  `;
+  m.classList.add('show');
+}
+
+function closeShopPopup(){
+  const m=document.getElementById('gameShopPopup');
+  if(m)m.classList.remove('show');
+}
+
+function goBuy(productId){
+  const p=SHOP_PRODUCTS[productId];
+  if(!p)return;
+  closeShopPopup();
+  if(p.buyUrl&&p.buyUrl!=''){
+    window.open(p.buyUrl,'_blank');
+  }else{
+    alert('商品链接待配置，请联系管理员');
+  }
+}
+
+function renderPostGameShop(){
+  const p=SHOP_PRODUCTS['racket'];
+  return`<div class="postgame-shop">
+    <div class="ps-title">🛒 同款设备推荐</div>
+    <div class="ps-card">
+      <div class="ps-icon">${p.icon}</div>
+      <div class="ps-info">
+        <div class="ps-name">${p.name}</div>
+        <div class="ps-desc" style="font-size:11px;color:var(--text-muted);margin-bottom:4px">${p.desc.substring(0,30)}...</div>
+        <div class="ps-price">¥<span class="yen">${formatPrice(p.price)}</span> <span style="font-size:11px;color:var(--text-muted);text-decoration:line-through">¥${formatPrice(p.origPrice)}</span></div>
+      </div>
+      <button class="ps-btn" onclick="goBuy('${p.id}')">购买</button>
+    </div>
+  </div>`;
+}
+
+// ── Check-in Functions ──
+var CHECKIN_KEY='mk_checkin_records';
+var CHECKIN_RECORDS=[];
+
+function loadCheckinRecords(){
+  try{
+    var raw=localStorage.getItem(CHECKIN_KEY);
+    CHECKIN_RECORDS=raw?JSON.parse(raw):[];
+  }catch(e){CHECKIN_RECORDS=[]}
+}
+function saveCheckinRecords(){
+  var toSave=CHECKIN_RECORDS.slice(-50);
+  localStorage.setItem(CHECKIN_KEY,JSON.stringify(toSave));
+}
+
+function compressImage(file,maxWidth,quality){
+  maxWidth=maxWidth||600;quality=quality||0.6;
+  return new Promise(function(resolve){
+    var reader=new FileReader();
+    reader.onload=function(e){
+      var img=new Image();
+      img.onload=function(){
+        var canvas=document.createElement('canvas');
+        var w=img.width,h=img.height;
+        if(w>maxWidth){h=Math.round(h*maxWidth/w);w=maxWidth}
+        canvas.width=w;canvas.height=h;
+        var ctx=canvas.getContext('2d');
+        ctx.drawImage(img,0,0,w,h);
+        resolve(canvas.toDataURL('image/jpeg',quality));
+      };
+      img.src=e.target.result;
+    };
+    reader.readAsDataURL(file);
+  });
+}
+
+var uploadingImage=null;
+
+function handleImageUpload(e){
+  var file=e.target.files[0];
+  if(!file)return;
+  if(file.size>10*1024*1024){alert('图片不能超过10MB');return}
+  var area=document.getElementById('checkinUploadArea');
+  var preview=document.getElementById('checkinPreview');
+  if(!area||!preview)return;
+  area.classList.add('has-image');
+  preview.innerHTML='<div style="padding:20px;color:var(--text-muted)">压缩中...</div>';
+  compressImage(file,600,0.6).then(function(base64){
+    uploadingImage=base64;
+    preview.innerHTML='';
+    var im=document.createElement('img');
+    im.src=base64;im.style.width='100%';im.style.maxHeight='140px';
+    im.style.objectFit='cover';im.style.borderRadius='var(--radius-sm)';
+    preview.appendChild(im);
+    var btn=document.createElement('button');
+    btn.className='cp-remove';btn.textContent='✕';
+    btn.onclick=function(){uploadingImage=null;area.classList.remove('has-image');preview.innerHTML=''};
+    preview.appendChild(btn);
+  }).catch(function(){alert('图片处理失败')});
+}
+
+function submitCheckin(){
+  var input=document.getElementById('checkinKills');
+  if(!input)return;
+  var kills=parseInt(input.value);
+  if(!kills||kills<=0){alert('请输入有效的灭蚊数量');return}
+  if(kills>1000){alert('单次打卡最多记录1000只');return}
+  var points=kills*10;
+  var record={
+    id:Date.now(),
+    date:new Date().toLocaleString('zh-CN'),
+    kills:kills,
+    image:uploadingImage,
+    points:points
+  };
+  CHECKIN_RECORDS.push(record);
+  saveCheckinRecords();
+  S.today+=kills;S.week+=kills;S.month+=kills;S.season+=kills;
+  S.gameHighScore+=points;save();
+  input.value='';uploadingImage=null;
+  var area=document.getElementById('checkinUploadArea');
+  var preview=document.getElementById('checkinPreview');
+  if(area)area.classList.remove('has-image');
+  if(preview)preview.innerHTML='';
+  var awardEl=document.getElementById('checkinAward');
+  if(awardEl){awardEl.querySelector('.cpa-val').textContent='+'+points;awardEl.style.display='block';setTimeout(function(){awardEl.style.display='none'},3000)}
+  renderCheckin();
+  if(S.watchBound)showWatchNotification('📸 实景打卡成功','灭蚊'+kills+'只，获得'+points+'积分');
+}
+
+function renderCheckin(){
+  var el=document.getElementById('page-checkin');
+  if(!el)return;
+  var html='<div class="checkin-hero"><div class="ch-icon">📸</div><div class="ch-title">实景打卡</div><div class="ch-sub">记录现实灭蚊战绩，赢取游戏积分</div></div>';
+  html+='<div class="checkin-form"><label class="cf-label">🦟 本次灭蚊数量</label><input class="cf-input" id="checkinKills" type="number" min="1" max="1000" placeholder="请输入数量"><div class="cf-hint">填写现实中使用电蚊拍消灭的蚊子数量</div></div>';
+  html+='<div class="checkin-upload"><label class="cf-label">📷 上传现场照片（可选）</label><div class="checkin-upload-area" id="checkinUploadArea"><div class="cua-icon">📷</div><div class="cua-text">点击上传照片</div><div class="cua-hint">支持 JPG/PNG，最大10MB</div><input type="file" accept="image/*" onchange="handleImageUpload(event)"></div><div class="checkin-preview" id="checkinPreview"></div></div>';
+  html+='<button class="btn btn-brand btn-contained checkin-submit" onclick="submitCheckin()">📸 提交打卡</button>';
+  html+='<div class="ci-points-awarded" id="checkinAward" style="display:none"><div class="cpa-val">+0</div><div class="cpa-label">获得积分（可用于兑换道具）</div></div>';
+  if(CHECKIN_RECORDS.length===0){
+    html+='<div class="checkin-empty"><div class="ce-icon">📸</div><div>暂无打卡记录<br><span style="font-size:11px">完成首次实景打卡吧！</span></div></div>';
+  }else{
+    html+='<div class="checkin-records"><div class="section-title">📋 打卡记录</div>';
+    for(var i=CHECKIN_RECORDS.length-1;i>=0;i--){
+      var r=CHECKIN_RECORDS[i];
+      var imgTag=r.image?'<img class="cr-img" src="'+r.image.substring(0,80)+'...">':'<div class="cr-img" style="display:flex;align-items:center;justify-content:center;font-size:20px;color:var(--text-muted)">🦟</div>';
+      html+='<div class="checkin-record" onclick="viewCheckinDetail('+r.id+')">'+imgTag+'<div class="cr-info"><div class="cr-kills">'+r.kills+' 只</div><div class="cr-date">'+r.date+'</div><div class="cr-points">+'+r.points+' 积分</div></div></div>';
+    }
+    html+='</div>';
+  }
+  el.innerHTML=html;
+}
+
+function viewCheckinDetail(id){
+  var record=CHECKIN_RECORDS.find(function(r){return r.id===id});
+  if(!record)return;
+  var m=document.getElementById('modal'),box=document.getElementById('modalBox');
+  if(!m||!box)return;
+  var imgHtml=record.image?'<div style="margin:12px 0;border-radius:var(--radius-md);overflow:hidden"><img src="'+record.image+'" style="width:100%"></div>':'';
+  box.innerHTML='<div style="font-size:36px;line-height:1;margin-bottom:8px">📸</div><h3>打卡详情</h3><div style="text-align:left;padding:8px 0"><div style="display:flex;justify-content:space-between;padding:6px 0"><span class="text-secondary">灭蚊数量</span><span class="text-brand" style="font-weight:800">'+record.kills+' 只</span></div><div style="display:flex;justify-content:space-between;padding:6px 0"><span class="text-secondary">获得积分</span><span class="text-success" style="font-weight:800">+'+record.points+'</span></div><div style="display:flex;justify-content:space-between;padding:6px 0"><span class="text-secondary">打卡时间</span><span style="font-size:12px;color:var(--text-muted)">'+record.date+'</span></div></div>'+imgHtml+'<button class="modal-close" onclick="closeModal()">关闭</button>';
+  m.classList.add('show');
+}
+
+loadCheckinRecords();
 
 // ── Game State ──
 const GAME_LB=[
@@ -237,8 +810,197 @@ function playBuzz(){
     o.start();o.stop(audioCtx.currentTime+.08);
   }catch(e){}
 }
+function playShock(){
+  try{
+    if(!audioCtx)audioCtx=new(window.AudioContext||window.webkitAudioContext)();
+    if(audioCtx.state==='suspended')audioCtx.resume();
+    [80,120,200,160,80].forEach((freq,i)=>{
+      const o=audioCtx.createOscillator(),g=audioCtx.createGain();
+      o.connect(g);g.connect(audioCtx.destination);
+      o.type='sawtooth';o.frequency.setValueAtTime(freq,audioCtx.currentTime+i*.04);
+      o.frequency.linearRampToValueAtTime(freq*2.5,audioCtx.currentTime+i*.04+.06);
+      g.gain.setValueAtTime(.13,audioCtx.currentTime+i*.04);
+      g.gain.linearRampToValueAtTime(0,audioCtx.currentTime+i*.04+.1);
+      o.start(audioCtx.currentTime+i*.04);o.stop(audioCtx.currentTime+i*.04+.1);
+    });
+  }catch(e){}
+}
 
-// ── Kill loop ──
+// ── Items / Props ──
+const ITEMS=[
+  {id:'basic',name:'基础拍',icon:'🔋',tag:'免费',tagClass:'item-tag-free',
+   cost:0,cd:8000,mult:1,effect:'single',desc:'单只击杀，无需冷却'},
+  {id:'advanced',name:'进阶拍',icon:'⚡',tag:'200分',tagClass:'item-tag-cost',
+   cost:200,cd:15000,mult:2,effect:'aoe',desc:'范围群杀（半径100px）',unlockKey:'mk_itm_adv'},
+  {id:'limited',name:'限定波',icon:'🔥',tag:'活动',tagClass:'item-tag-event',
+   cost:0,cd:20000,mult:3,effect:'aoe2',desc:'增强范围群杀（半径160px）',event:true,unlockKey:'mk_itm_ltd'},
+  {id:'flagship',name:'旗舰款',icon:'👑',tag:'需绑定',tagClass:'item-tag-lock',
+   cost:0,cd:30000,mult:5,effect:'clear',desc:'全屏清杀！绑定实体电蚊拍解锁',needsDevice:true,unlockKey:'mk_itm_flc'}
+];
+let deviceBound=S.scanning===false;/* mock: initially false */
+function loadItemState(){
+  ITEMS.forEach(it=>{
+    it.owned=it.id==='basic'?true:localStorage.getItem(it.unlockKey)==='1';
+    const cdEnd=parseInt(localStorage.getItem('mk_itm_cd_'+it.id))||0;
+    it.cdEnd=cdEnd;
+    it.onCd=Date.now()<cdEnd;
+  });
+}
+loadItemState();
+
+function getCdRemaining(id){
+  const cdEnd=parseInt(localStorage.getItem('mk_itm_cd_'+id))||0;
+  return Math.max(0,cdEnd-Date.now());
+}
+function getEffectiveCd(id){
+  const it=ITEMS.find(x=>x.id===id);if(!it)return 0;
+  return applyWatchCooldownReduction(it.cd);
+}
+function startItemCd(id){
+  const it=ITEMS.find(x=>x.id===id);if(!it)return;
+  const effectiveCd=getEffectiveCd(id);
+  const end=Date.now()+effectiveCd;
+  localStorage.setItem('mk_itm_cd_'+id,String(end));
+  it.cdEnd=end;it.onCd=true;
+}
+function renderItems(){
+  let html='<div class="item-bar">';
+  ITEMS.forEach(it=>{
+    const owned=it.id==='basic'?true:localStorage.getItem(it.unlockKey)==='1';
+    const cdRemain=getCdRemaining(it.id);
+    const onCd=cdRemain>0;
+    const isActive=G.activeItem===it.id;
+    let cls='item-slot';
+    if(isActive)cls+=' active';
+    else if(!owned)cls+=' locked';
+    else if(onCd)cls+=' on-cd';
+    else if(owned)cls+=' owned';
+    let overlay='';
+    if(!owned&&it.id!=='basic'){
+      const reason=it.needsDevice?'需绑定实体设备':'需活动获取';
+      overlay=`<div class="item-cd"><span style="font-size:20px;margin-bottom:4px">🔒</span><span style="font-size:10px">${reason}</span></div>`;
+    }else if(onCd){
+      const sec=Math.ceil(cdRemain/1000);
+      overlay=`<div class="item-cd"><span class="cd-icon">⏳</span><span>${sec}s</span></div>`;
+    }
+    html+=`<div class="${cls}" onclick="onItemClick('${it.id}')">
+      <span class="item-icon">${it.icon}</span>
+      <span class="item-name">${it.name}</span>
+      <span class="item-tag ${it.tagClass}">${it.tag}</span>
+      ${overlay}
+    </div>`;
+  });
+  html+='</div>';
+  return html;
+}
+function onItemClick(id){
+  if(!G.playing){alert('请先开始游戏！');return}
+  const it=ITEMS.find(x=>x.id===id);
+  if(!it)return;
+  const owned=it.id==='basic'?true:localStorage.getItem(it.unlockKey)==='1';
+  if(!owned){
+    if(it.needsDevice){
+      /* Show shop popup for flagship racket */
+      openShopPopup('racket');
+      return;
+    }
+    if(it.event){
+      /* Show shop popup for limited item */
+      openShopPopup('racket');
+      return;
+    }
+    if(it.cost>0){
+      if(S.gameHighScore<it.cost){alert('积分不足！需要 '+it.cost+' 分\n当前最高分: '+S.gameHighScore);return}
+      if(!confirm('使用 '+it.cost+' 积分兑换【'+it.name+'】？\n（积分按最高记录扣除）'))return;
+      localStorage.setItem(it.unlockKey,'1');
+      loadItemState();
+      alert('🎉 成功兑换【'+it.name+'】！');
+      renderGame();return;
+    }
+    return;
+  }
+  const cdRemain=getCdRemaining(id);
+  if(cdRemain>0){alert('⏳ 【'+it.name+'】冷却中，剩余 '+Math.ceil(cdRemain/1000)+' 秒');return}
+  /* Activate */
+  activateItem(id);
+}
+function activateItem(id){
+  /* Clear previous */
+  clearItemEffect();
+  const it=ITEMS.find(x=>x.id===id);
+  if(!it)return;
+  G.activeItem=id;
+  G.multiplier=it.mult;
+  /* Visual: multiplier badge */
+  const board=document.getElementById('gameBoard');
+  if(board){
+    let b=board.querySelector('.multi-badge');
+    if(!b){b=document.createElement('div');b.className='multi-badge';board.appendChild(b)}
+    b.textContent='×'+it.mult;
+    b.style.display='block';
+  }
+  /* Shock effect for advanced/limited/flagship */
+  if(it.effect!=='single')showShockEffect(it);
+  /* Watch联动：使用道具通知 */
+  if(S.watchBound){
+    showWatchNotification('⚡ 道具激活',it.name+' 已激活，倍率×'+it.mult);
+  }
+  /* Start cooldown after effect duration */
+  const effectDuration=it.effect==='clear'?600:it.effect==='aoe2'?500:400;
+  setTimeout(()=>{
+    if(G.activeItem===id){
+      startItemCd(id);
+      clearItemEffect();
+      renderGame();
+    }
+  },effectDuration);
+  /* Auto-clear after effect */
+  G.itemTimer=setTimeout(()=>{clearItemEffect()},effectDuration);
+  renderGame();
+}
+function clearItemEffect(){
+  G.activeItem=null;
+  G.multiplier=1;
+  const board=document.getElementById('gameBoard');
+  if(board){
+    const b=board.querySelector('.multi-badge');
+    if(b)b.remove();
+  }
+  if(G.itemTimer){clearTimeout(G.itemTimer);G.itemTimer=null}
+}
+function showShockEffect(it){
+  const board=document.getElementById('gameBoard');if(!board)return;
+  const overlay=document.createElement('div');
+  overlay.className='shock-overlay';
+  overlay.id='shockOverlay';
+  const flash=document.createElement('div');
+  flash.className='shock-flash';
+  overlay.appendChild(flash);
+  /* Add bolt icons */
+  const bolts=[it.icon,it.icon,it.icon];
+  bolts.forEach((ic,i)=>{
+    const b=document.createElement('div');
+    b.className='shock-bolt'+(i===1?' b2':'')+(i===2?' b3':'');
+    b.textContent=ic;
+    overlay.appendChild(b);
+  });
+  board.appendChild(overlay);
+  playShock();
+  setTimeout(()=>{if(overlay.parentNode)overlay.remove()},600);
+  /* Apply kill effect based on type */
+  if(it.effect==='clear'){
+    /* Full clear: kill all mosquitoes on screen */
+    setTimeout(()=>{
+      const copy=[...G.mosquitoes];
+      copy.forEach(m=>{
+        if(m.el&&!m.el.classList.contains('killed')){
+          killMosquito(m.id,m.x,m.y,true);
+        }
+      });
+    },120);
+  }
+}
+
 let killTimer=null;
 function startKillLoop(){
   stopKillLoop();
@@ -262,15 +1024,17 @@ const app=document.getElementById('app');
 
 function render(){
   if(!S.loggedIn){renderLogin();return}
-  const tabs=['page-home','page-lb','page-dev','page-badges','page-me','page-game'];
-  const icons=['🏠','🏆','📡','🎖️','👤','🎮'];
-  const labels=['首页','排行','设备','成就','我的','游戏'];
+  const tabs=['page-home','page-lb','page-dev','page-badges','page-me','page-game','page-checkin'];
+  const icons=['🏠','🏆','📡','🎖️','👤','🎮','📸'];
+  const labels=['首页','排行','设备','成就','我的','游戏','打卡'];
   app.innerHTML=tabs.map((c,i)=>`<div class="page ${i===S.tab?'active':''}" id="${c}"></div>`).join('')+
     `<div class="nav">${icons.map((ic,i)=>`<button class="nav-item ${i===S.tab?'active':''}" onclick="setTab(${i})"><span class="icon">${ic}</span>${labels[i]}</button>`).join('')}</div>`+
     `<div class="kill-log" id="killLog"></div>`+
-    `<div class="modal-overlay" id="modal"><div class="modal-box" id="modalBox"></div></div>`;
+    `<div class="modal-overlay" id="modal"><div class="modal-box" id="modalBox"></div></div>`+
+    `<div class="watch-notification" id="watchNotif">...</div>`+
+    `<div class="game-shop-popup" id="gameShopPopup"><div class="gsp-box" id="gameShopBox"></div></div>`;
   if(S.sessionActive)startKillLoop();
-  renderHome();renderLB();renderDev();renderBadges();renderMe();renderGame();
+  renderHome();renderLB();renderDev();renderBadges();renderMe();renderGame();renderCheckin();
 }
 
 function renderLogin(){
@@ -297,7 +1061,7 @@ function setTab(i){
   S.tab=i;
   document.querySelectorAll('.page').forEach((p,j)=>p.classList.toggle('active',j===i));
   document.querySelectorAll('.nav-item').forEach((b,j)=>b.classList.toggle('active',j===i));
-  [renderHome,renderLB,renderDev,renderBadges,renderMe,renderGame][i]();
+  [renderHome,renderLB,renderDev,renderBadges,renderMe,renderGame,renderCheckin][i]();
 }
 
 // ── Home ──
@@ -321,11 +1085,12 @@ function renderHome(){
       ${S.sessionActive
         ?`<button class="btn-contained btn-danger-contained" onclick="endSession()">⏹ 结束出击</button>`
         :`<button class="btn-contained btn-brand-contained" onclick="startSession()">⚡ 开始出击</button>`}
-    </div>`;
+    </div>
+    ${S.watchBound?`<div class="card" style="margin-top:12px;text-align:center;padding:10px 14px;font-size:12px;color:var(--text-secondary)">⌚ 手表联动已启用 · 出击模式可从手表远程控制</div>`:''}`;
 }
 
-function startSession(){S.sessionActive=true;startKillLoop();renderHome()}
-function endSession(){S.sessionActive=false;stopKillLoop();renderHome()}
+function startSession(){S.sessionActive=true;startKillLoop();renderHome();if(S.watchBound)showWatchNotification('⚡ 出击模式启动','首页出击模式已开始运行')}
+function endSession(){S.sessionActive=false;stopKillLoop();renderHome();if(S.watchBound)showWatchNotification('⏹ 出击模式停止','首页出击模式已停止')}
 
 // ── Leaderboard ──
 function renderLB(){
@@ -358,9 +1123,32 @@ function renderDev(){
   const el=document.getElementById('page-dev');if(!el)return;
   let scanHtml='';
   if(S.scanning)scanHtml=`<div class="radar-wrap"><div class="radar"></div><div style="margin-top:12px;font-size:14px;color:var(--text-secondary)">正在扫描附近设备...</div></div>`;
-  else if(S.scanResults.length)scanHtml=S.scanResults.map(d=>`<div class="scan-device">
+  else if(S.scanResults.length)scanHtml=S.scanResults.map(d=>`<div class="scan-device${d.name.includes('Watch')||d.name.includes('手表')?' watch-option':''}${d.name.includes('指环')||d.name.includes('Ring')?' ring-option':''}${d.name.includes('AR')||d.name.includes('Glasses')?' glasses-option':''}">
     <span class="dev-name">${d.name}</span><span class="dev-rssi">${d.rssi} dBm</span>
-    <button class="bind-btn" onclick="bindDev('${d.name}')">绑定</button></div>`).join('');
+    <button class="bind-btn" onclick="bindDev('${d.name}')">${d.name.includes('Watch')||d.name.includes('手表')&&!S.watchBound?'绑定手表':d.name.includes('指环')||d.name.includes('Ring')&&!S.ringBound?'绑定指环':d.name.includes('AR')||d.name.includes('Glasses')&&!S.glassesBound?'绑定眼镜':'绑定'}</button></div>`).join('');
+  let watchHtml='';
+  if(S.watchBound){
+    watchHtml=`<div class="watch-device-card bound">
+      <div class="watch-header">
+        <span class="watch-icon">⌚</span>
+        <div class="watch-info">
+          <div class="watch-name">智能手表</div>
+          <div class="watch-model">Mock Watch Pro · 已连接</div>
+        </div>
+        <div style="text-align:right"><div class="text-success" style="font-size:12px">● 在线</div></div>
+      </div>
+      <div class="watch-status-row">
+        <div class="watch-stat"><div class="watch-stat-val text-info">${S.watchBattery}%</div><div class="watch-stat-lbl">电量</div></div>
+        <div class="watch-stat"><div class="watch-stat-val text-success">${S.watchSignal}</div><div class="watch-stat-lbl">信号</div></div>
+        <div class="watch-stat"><div class="watch-stat-val text-brand">⌚</div><div class="watch-stat-lbl">已绑定</div></div>
+      </div>
+      <div class="watch-actions">
+        <button class="btn btn-danger btn-sm" onclick="unbindWatch()">解绑手表</button>
+        <button class="btn btn-secondary btn-sm" onclick="simulateWatchRemote('start')">远程启动</button>
+        <button class="device-buy-btn" onclick="goBuy('watch')">🛒 选购手表</button>
+      </div>
+    </div>`;
+  }
   el.innerHTML=`
     <div class="card">
       <div style="display:flex;justify-content:space-between;align-items:center">
@@ -369,8 +1157,50 @@ function renderDev(){
         <div style="text-align:right"><div class="text-info" style="font-weight:700;font-size:18px">78%</div>
         <div style="font-size:11px;color:var(--text-muted)">电量</div></div>
       </div>
-      <button class="btn btn-danger btn-sm" style="margin-top:12px" onclick="alert('设备已解绑')">解绑设备</button>
+      <div style="display:flex;gap:8px;margin-top:12px">
+      <button class="btn btn-danger btn-sm" style="flex:1" onclick="alert('设备已解绑')">解绑设备</button>
+      <button class="device-buy-btn" style="flex:1" onclick="goBuy('racket')">🛒 立即选购</button>
     </div>
+    </div>
+    ${watchHtml}
+    ${S.ringBound?`<div class="ring-device-card bound">
+      <div class="ring-header">
+        <span class="ring-icon">💍</span>
+        <div class="ring-info">
+          <div class="ring-name">智能指环 S1</div>
+          <div class="ring-model">八万Ring S1 · 已连接</div>
+        </div>
+        <div style="text-align:right"><div class="text-success" style="font-size:12px">● 在线</div></div>
+      </div>
+      <div class="ring-status-row">
+        <div class="ring-stat"><div class="ring-stat-val text-info">${S.ringBattery}%</div><div class="ring-stat-lbl">电量</div></div>
+        <div class="ring-stat"><div class="ring-stat-val text-success">${S.ringSignal}</div><div class="ring-stat-lbl">信号</div></div>
+        <div class="ring-stat"><div class="ring-stat-val text-brand">💍</div><div class="ring-stat-lbl">已绑定</div></div>
+      </div>
+      <div class="ring-actions">
+        <button class="btn btn-danger btn-sm" onclick="unbindRing()">解绑指环</button>
+        <button class="device-buy-btn" onclick="goBuy('ring')">🛒 选购指环</button>
+      </div>
+    </div>`:''}
+    ${S.glassesBound?`<div class="glasses-device-card bound">
+      <div class="glasses-header">
+        <span class="glasses-icon">🥽</span>
+        <div class="glasses-info">
+          <div class="glasses-name">智能AR眼镜</div>
+          <div class="glasses-model">八万AR Glasses · 已连接</div>
+        </div>
+        <div style="text-align:right"><div class="text-success" style="font-size:12px">● 在线</div></div>
+      </div>
+      <div class="glasses-status-row">
+        <div class="glasses-stat"><div class="glasses-stat-val text-info">${S.glassesBattery}%</div><div class="glasses-stat-lbl">电量</div></div>
+        <div class="glasses-stat"><div class="glasses-stat-val text-success">${S.glassesSignal}</div><div class="glasses-stat-lbl">信号</div></div>
+        <div class="glasses-stat"><div class="glasses-stat-val text-brand">🥽</div><div class="glasses-stat-lbl">已绑定</div></div>
+      </div>
+      <div class="glasses-actions">
+        <button class="btn btn-danger btn-sm" onclick="unbindGlasses()">解绑眼镜</button>
+        <button class="device-buy-btn" onclick="alert('AR眼镜即将上市，敬请期待！')">🛒 选购眼镜</button>
+      </div>
+    </div>`:''}
     ${S.scanning||S.scanResults.length?'':`<button class="scan-btn" onclick="startScan()">＋ 添加新设备</button>`}
     ${scanHtml}`;
 }
@@ -378,12 +1208,103 @@ function renderDev(){
 function startScan(){
   S.scanning=true;renderDev();
   setTimeout(()=>{
-    S.scanResults=[
-      {name:'八万Pro X1',rssi:'-42'},{name:'智能指环 S1',rssi:'-58'},{name:'华为Watch GT',rssi:'-65'}
-    ];S.scanning=false;renderDev();
+    const results=[
+      {name:'八万Pro X1',rssi:'-42'}
+    ];
+    if(!S.ringBound)results.push({name:'智能指环 S1',rssi:'-58'});
+    if(!S.watchBound)results.push({name:'Mock Watch Pro',rssi:'-51'});
+    if(!S.glassesBound)results.push({name:'八万AR Glasses',rssi:'-55'});
+    S.scanResults=results;S.scanning=false;renderDev();
   },2500);
 }
-function bindDev(n){S.scanResults=[];S.scanning=false;alert('已绑定: '+n);renderDev()}
+function bindDev(n){
+  S.scanResults=[];S.scanning=false;
+  if(n.includes('Watch')||n.includes('手表')){
+    S.watchBound=true;
+    S.watchBattery=78;
+    S.watchSignal='-48';
+    save();
+    alert('⌚ 智能手表绑定成功！\n\n🎉 专属权益已激活：\n- 所有道具冷却时间减少30%\n- 游戏心率实时同步\n- 战绩简报推送');
+  }else if(n.includes('指环')||n.includes('Ring')){
+    bindRing();
+    return;
+  }else if(n.includes('AR')||n.includes('Glasses')||n.includes('眼镜')){
+    bindGlasses();
+    return;
+  }else{
+    alert('已绑定: '+n);
+  }
+  renderDev();
+}
+function unbindWatch(){
+  if(!confirm('确定解绑智能手表？\n\n解绑后将失去道具冷却减免等专属权益。'))return;
+  S.watchBound=false;
+  S.watchBattery=0;
+  save();
+  stopHeartRate();
+  alert('⌚ 智能手表已解绑');
+  renderDev();
+}
+
+// ── Ring Functions ──
+function bindRing(){
+  S.ringBound=true;
+  S.ringBattery=85;
+  S.ringSignal='-52';
+  save();
+  alert('💍 智能指环绑定成功！\n\n🎉 专属权益已激活：\n- 解锁手势操控模式\n- 挥手即杀，体验未来交互\n\n（手势操控功能正在开发中）');
+  renderDev();
+}
+
+function unbindRing(){
+  if(!confirm('确定解绑智能指环？\n\n解绑后将失去手势操控等专属权益。'))return;
+  S.ringBound=false;
+  S.ringBattery=0;
+  save();
+  alert('💍 智能指环已解绑');
+  renderDev();
+}
+
+// ── Glasses Functions ──
+function bindGlasses(){
+  S.glassesBound=true;
+  S.glassesBattery=72;
+  S.glassesSignal='-55';
+  save();
+  alert('🥽 智能AR眼镜绑定成功！\n\n🎉 专属权益已激活：\n- 解锁AR实景灭蚊模式\n- 虚拟蚊子叠加现实场景\n\n（AR实景功能正在开发中）');
+  renderDev();
+}
+
+function unbindGlasses(){
+  if(!confirm('确定解绑智能AR眼镜？\n\n解绑后将失去AR实景灭蚊等专属权益。'))return;
+  S.glassesBound=false;
+  S.glassesBattery=0;
+  save();
+  alert('🥽 智能AR眼镜已解绑');
+  renderDev();
+}
+
+// ── Feature Preview Modal ──
+function showFeaturePreview(featureName,description,releaseDate){
+  const m=document.getElementById('modal'),box=document.getElementById('modalBox');
+  if(!m||!box)return;
+  box.innerHTML=`
+    <div class="modal-icon">🚧</div>
+    <h3>${featureName}</h3>
+    <div style="text-align:left;padding:12px 0">
+      <div style="background:var(--surface);border-radius:var(--radius-md);padding:12px;margin-bottom:10px;border:1px solid var(--border)">
+        <div style="font-size:13px;color:var(--text-secondary);margin-bottom:6px">功能描述</div>
+        <div style="font-size:14px;line-height:1.6">${description}</div>
+      </div>
+      <div style="background:rgba(245,158,11,.08);border-radius:var(--radius-md);padding:12px;border:1px solid rgba(245,158,11,.25)">
+        <div style="font-size:13px;color:var(--brand);font-weight:700;margin-bottom:4px">📅 开发进度</div>
+        <div style="font-size:13px;color:var(--text-secondary)">预计发布时间：${releaseDate}</div>
+        <div style="font-size:12px;color:var(--text-muted);margin-top:6px">当前版本：V1.0 基础联动可用\nV1.1 将支持手势识别\nV1.2 将支持完整AR实景</div>
+      </div>
+    </div>
+    <button class="modal-close" onclick="closeModal()">我知道了</button>`;
+  m.classList.add('show');
+}
 
 // ── Badges ──
 function renderBadges(){
@@ -435,7 +1356,7 @@ function renderMe(){
       <span style="font-size:12px;color:var(--text-muted)">${s.t}</span>
     </div>`).join('')}
     <div style="margin-top:16px">
-      <div class="menu-item" onclick="alert('会员中心（V1.2上线）')"><span class="menu-label">💎 会员中心</span><span class="menu-arrow">›</span></div>
+      <div class="menu-item" onclick="renderShop()"><span class="menu-label">🛒 设备商城</span><span class="menu-arrow">›</span></div>
       <div class="menu-item" onclick="alert('设置页面')"><span class="menu-label">⚙️ 设置</span><span class="menu-arrow">›</span></div>
       <div class="menu-item" onclick="doLogout()"><span class="menu-label text-danger">退出登录</span></div>
     </div>`;
@@ -446,7 +1367,7 @@ function doLogout(){S.loggedIn=false;S.sessionActive=false;stopKillLoop();save()
 // ── Game ──
 function startGame(){
   stopGame();
-  G={playing:true,score:0,timeLeft:10,mosquitoes:[],timer:null,spawnTimer:null,nextId:1};
+  G={playing:true,score:0,timeLeft:10,mosquitoes:[],timer:null,spawnTimer:null,nextId:1,activeItem:null,multiplier:1,itemTimer:null};
   const board=document.getElementById('gameBoard');if(!board)return;
   const overlay=board.querySelector('.game-overlay');
   if(overlay)overlay.remove();
@@ -454,6 +1375,11 @@ function startGame(){
   updateGameHUD();
   G.timer=setInterval(gameTick,1000);
   scheduleSpawn();
+  // Watch联动：启动心率模拟，发送通知
+  if(S.watchBound){
+    startHeartRate();
+    showWatchNotification('🎮 游戏开始','极速灭蚊模式已启动！');
+  }
 }
 function stopGame(){
   if(G.timer){clearInterval(G.timer);G.timer=null}
@@ -501,17 +1427,59 @@ function autoRemoveMosquito(id){
   }
   G.mosquitoes.splice(idx,1);
 }
-function killMosquito(id,x,y){
+function killMosquito(id,x,y,fromClear){
   const idx=G.mosquitoes.findIndex(m=>m.id===id);
   if(idx===-1)return;
   const m=G.mosquitoes[idx];
-  m.el.classList.add('killed');
-  setTimeout(()=>{if(m.el)m.el.remove()},350);
+  if(!fromClear)m.el.classList.add('killed');
+  setTimeout(()=>{if(m.el&&!fromClear)m.el.remove()},350);
   G.mosquitoes.splice(idx,1);
-  G.score++;
+  const pts=G.multiplier||1;
+  G.score+=pts;
   updateGameHUD();
+  if(!fromClear){
+    if(pts>1){showMultiFX(x,y,pts)}
+    else{playBuzz();showKillFX(x,y)}
+  }
+  /* AOE: advanced / limited */
+  if(G.activeItem==='advanced'&&!fromClear){
+    doAOE(x,y,100);
+  }else if(G.activeItem==='limited'&&!fromClear){
+    doAOE(x,y,160);
+  }
+}
+function doAOE(cx,cy,radius){
+  const toKill=[];
+  G.mosquitoes.forEach(function(mm){
+    if(mm.el&&!mm.el.classList.contains('killed')){
+      const dx=mm.x-cx,dy=mm.y-cy;
+      if(Math.sqrt(dx*dx+dy*dy)<radius)toKill.push(mm);
+    }
+  });
+  toKill.forEach(function(mm){
+    if(mm.el)mm.el.classList.add('killed');
+    const pts=G.multiplier||1;
+    G.score+=pts;
+    if(pts>1)showMultiFX(mm.x,mm.y,pts);
+    else showKillFX(mm.x,mm.y);
+    setTimeout(function(){if(mm.el)mm.el.remove()},300);
+  });
+  for(let i=G.mosquitoes.length-1;i>=0;i--){
+    if(toKill.indexOf(G.mosquitoes[i])!==-1)G.mosquitoes.splice(i,1);
+  }
+  updateGameHUD();
+  playShock();
+}
+function showMultiFX(x,y,pts){
+  const board=document.getElementById('gameBoard');if(!board)return;
+  const fx=document.createElement('div');
+  fx.className='game-kill-fx';
+  fx.textContent='+'+pts;
+  fx.style.left=x+'px';fx.style.top=y+'px';
+  fx.style.fontSize='22px';
+  board.appendChild(fx);
+  setTimeout(()=>fx.remove(),700);
   playBuzz();
-  showKillFX(x,y);
 }
 function showKillFX(x,y){
   const board=document.getElementById('gameBoard');if(!board)return;
@@ -523,14 +1491,25 @@ function showKillFX(x,y){
   setTimeout(()=>fx.remove(),700);
 }
 function endGame(){
-  G.playing=false;
+  clearItemEffect();G.playing=false;
   if(G.timer){clearInterval(G.timer);G.timer=null}
   if(G.spawnTimer){clearTimeout(G.spawnTimer);G.spawnTimer=null}
   G.mosquitoes.forEach(m=>{if(m.el)m.el.remove()});
   G.mosquitoes=[];
   const board=document.getElementById('gameBoard');
   if(board)board.classList.remove('playing');
-  if(G.score>S.gameHighScore){S.gameHighScore=G.score;localStorage.setItem('mk_ghs',G.score);}
+  const isNewHigh=G.score>S.gameHighScore;
+  if(isNewHigh){S.gameHighScore=G.score;localStorage.setItem('mk_ghs',G.score);}
+  // Watch联动：停止心率模拟，发送通知，显示战绩简报
+  if(S.watchBound){
+    stopHeartRate();
+    if(isNewHigh){
+      showWatchNotification('🏆 新纪录！','最高分刷新: '+G.score+'只');
+    }else{
+      showWatchNotification('🎮 游戏结束','本次击杀: '+G.score+'只');
+    }
+    showGameBriefing(G.score,S.today,S.season);
+  }
   renderGame();
 }
 function updateGameHUD(){
@@ -577,8 +1556,120 @@ function renderGame(){
     }
     lbHTML='<div class="section-title" style="margin-top:16px">🏆 极速榜</div><div style="margin-bottom:16px">'+rows+'</div>';
   }
-  el.innerHTML='<div class="game-hud"><div class="game-hud-item"><div class="gh-val'+(G.playing&&G.timeLeft<=3?' urgent':'')+'" id="gameTimeLeft">'+G.timeLeft+'</div><div class="gh-lbl">⏱ 剩余秒数</div></div><div class="game-hud-item"><div class="gh-val text-success" id="gameScore">'+G.score+'</div><div class="gh-lbl">🦟 '+(G.playing?'实时击杀':'击杀数')+'</div></div><div class="game-hud-item"><div class="gh-val text-brand">'+S.gameHighScore+'</div><div class="gh-lbl">🏆 最高记录</div></div></div><div class="game-board'+(G.playing?' playing':'')+'" id="gameBoard">'+boardHTML+'</div>'+lbHTML+'<div class="card" style="text-align:center;padding:14px"><div style="font-size:13px;color:var(--text-secondary)">💡 提示：蚊子会在2秒后自动飞走，手速要快！</div></div>';
+
+  /* Post-game shop recommendation — define BEFORE using in innerHTML */
+  let postGameShopHtml = '';
+  if(G.score > 0 && !G.playing){
+    postGameShopHtml = renderPostGameShop();
+  }
+
+  const hrHtml=S.watchBound&&G.playing?'<div class="game-hud-item heart-rate-display"><span class="hr-icon">❤️</span><span class="hr-val" id="heartRateVal">'+S.watchHeartRate+'</span><span class="hr-label">BPM</span></div>':'';
+  /* Game mode switches */
+  let modeSwitchesHtml='';
+  if(S.ringBound&&!G.playing){
+    modeSwitchesHtml='<div class="game-mode-switch" data-feature="手势操控模式" data-desc="通过智能指环识别手势动作，实现挥手即杀、捏合放大、旋转切换道具等自然交互。绑定智能指环后自动解锁。" data-date="2026年Q3"><div class="gms-label"><span class="gms-icon">🖐️</span><div><div style="font-size:14px;font-weight:700">手势操控模式</div><div class="gms-hint">智能指环已绑定 · 功能开发中</div></div></div><div class="toggle-switch" id="gestureToggle"></div></div>';
+  }
+  if(S.glassesBound&&!G.playing){
+    modeSwitchesHtml+='<div class="game-mode-switch" data-feature="AR实景模式" data-desc="通过智能AR眼镜将虚拟蚊子叠加到现实场景中，实现AR实景灭蚊体验。支持空间定位、虚拟物理碰撞、多人协作模式。绑定智能AR眼镜后自动解锁。" data-date="2026年Q4"><div class="gms-label"><span class="gms-icon">🥽</span><div><div style="font-size:14px;font-weight:700">AR实景模式</div><div class="gms-hint">智能AR眼镜已绑定 · 功能开发中</div></div></div><div class="toggle-switch" id="arToggle"></div></div>';
+  }
+  el.innerHTML='<div class="game-hud"><div class="game-hud-item"><div class="gh-val'+(G.playing&&G.timeLeft<=3?' urgent':'')+'" id="gameTimeLeft">'+G.timeLeft+'</div><div class="gh-lbl">⏱ 剩余秒数</div></div><div class="game-hud-item"><div class="gh-val text-success" id="gameScore">'+G.score+'</div><div class="gh-lbl">🦟 '+(G.playing?'实时击杀':'击杀数')+'</div></div><div class="game-hud-item"><div class="gh-val text-brand">'+S.gameHighScore+'</div><div class="gh-lbl">🏆 最高记录</div></div>'+hrHtml+'</div>'+modeSwitchesHtml+'<div class="game-board'+(G.playing?' playing':'')+'" id="gameBoard">'+boardHTML+'</div>'+lbHTML+postGameShopHtml+'<div class="card" style="text-align:center;padding:14px"><div style="font-size:13px;color:var(--text-secondary)">💡 提示：蚊子会在2秒后自动飞走，手速要快！</div></div>';
+  /* Attach click handlers to game mode switches (avoid inline onclick escaping issues) */
+  el.querySelectorAll('.game-mode-switch').forEach(function(div){
+    div.addEventListener('click', function(){
+      const fn = div.getAttribute('data-feature');
+      const desc = div.getAttribute('data-desc');
+      const dt = div.getAttribute('data-date');
+      showFeaturePreview(fn, desc, dt);
+    });
+  });
   if(G.playing)updateGameHUD();
+
+  /* Inject item bar */
+  const ib=document.getElementById('gameItemBar');
+  if(ib)ib.remove();
+  const bar=document.createElement('div');
+  bar.id='gameItemBar';
+  bar.innerHTML=renderItems();
+  const bc=document.getElementById('gameBoard');
+  if(bc&&bc.parentNode)bc.parentNode.insertBefore(bar,bc);
+}
+
+
+// ── Shop Page ──
+let SHOP_TAB = 0; // 0=单品, 1=套餐
+
+function renderShop(){
+  S.tab = 5; // Keep shop under "我的" context
+  const el = document.getElementById('page-me');
+  if(!el) return;
+  const tabsHtml = '<div class="season-tabs"><button class="season-tab '+(SHOP_TAB===0?'active':'')+'" onclick=\'switchShopTab(0)\'>🛒 单品</button><button class="season-tab '+(SHOP_TAB===1?'active':'')+'" onclick=\'switchShopTab(1)\'>📦 组合套餐</button></div>';
+  let bodyHtml = '';
+  if(SHOP_TAB === 0){
+    bodyHtml = renderShopSingle();
+  } else {
+    bodyHtml = renderShopBundle();
+  }
+  el.innerHTML = '<div class="shop-hero"><div class="sh-icon">🛒</div><div class="sh-title">八万设备商城</div><div class="sh-sub">正品保障 · 7天无理由退换</div></div>' + tabsHtml + bodyHtml + '<div style="margin-top:16px"><button class="btn btn-secondary btn-sm" onclick="renderMe()" style="width:100%">← 返回个人中心</button></div>';
+}
+
+function switchShopTab(tab){
+  SHOP_TAB = tab;
+  renderShop();
+}
+
+function renderShopSingle(){
+  let html = '';
+  const products = ['racket','watch','ring'];
+  products.forEach(function(pid) {
+    const p = SHOP_PRODUCTS[pid];
+    if(!p) return;
+    let badgeHtml = '';
+    p.tags.forEach(function(t) { badgeHtml += '<span class="sc-tag">' + t + '</span>'; });
+    html += '<div class="shop-card" onclick="openShopPopup(\'' + pid + '\')">' +
+      '<div class="sc-img">' + p.icon + '</div>' +
+      '<div class="sc-name">' + p.name + '</div>' +
+      '<div class="sc-desc">' + p.desc + '</div>' +
+      '<div class="sc-tags">' + badgeHtml + '</div>' +
+      '<div class="sc-price-row">' +
+        '<span class="sc-price">¥<span class="yen">' + formatPrice(p.price) + '</span></span>' +
+        '<span class="sc-orig-price">¥' + formatPrice(p.origPrice) + '</span>' +
+      '</div>' +
+      '<button class="sc-btn" onclick="event.stopPropagation();goBuy(\'' + pid + '\')">🛒 立即购买</button>' +
+    '</div>';
+  });
+  return html;
+}
+
+function renderShopBundle(){
+  let html = '';
+  const bundles = ['bundle_rw','bundle_rr','bundle_all'];
+  bundles.forEach(function(bid) {
+    const p = SHOP_PRODUCTS[bid];
+    if(!p) return;
+    let badgeHtml = '';
+    p.tags.forEach(function(t) { badgeHtml += '<span class="sc-tag">' + t + '</span>'; });
+    let itemsHtml = '<div class="bc-items">';
+    if(p.bundleItems) {
+      p.bundleItems.forEach(function(iid) {
+        const item = SHOP_PRODUCTS[iid];
+        if(item) itemsHtml += '<div class="bc-item"><div class="bc-item-icon">' + item.icon + '</div><div class="bc-item-name">' + item.name + '</div></div>';
+      });
+    }
+    itemsHtml += '</div>';
+    html += '<div class="bundle-card">' +
+      '<div class="bc-badge">' + (p.tags[0] || '') + '</div>' +
+      '<div class="bc-title">' + p.name + '</div>' +
+      '<div class="bc-desc">' + p.desc + '</div>' +
+      itemsHtml +
+      '<div class="bc-price-row">' +
+        '<span class="bc-price">¥<span class="yen">' + formatPrice(p.price) + '</span></span>' +
+        '<span class="bc-orig">¥' + formatPrice(p.origPrice) + '</span>' +
+        '<span class="bc-save">省¥' + formatPrice(p.saveAmount) + '</span>' +
+      '</div>' +
+      '<button class="bc-btn" onclick="goBuy(\'' + bid + '\')">🛒 立即购买</button>' +
+    '</div>';
+  });
+  return html;
 }
 
 // ── Init ──
