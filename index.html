@@ -454,6 +454,8 @@ const S={
   watchSignal:localStorage.getItem('mk_watch_sig')||'-48',
   watchHeartRate:72,
   watchNotifEnabled:true,
+  watchNickname:localStorage.getItem('mk_watch_nick')||'我的手表',
+  watchFirmware:localStorage.getItem('mk_watch_fw')||'V1.2.3',
   // Ring state
   ringBound:localStorage.getItem('mk_ring_bound')==='1',
   ringBattery:parseInt(localStorage.getItem('mk_ring_bat'))||85,
@@ -508,6 +510,8 @@ function save(){
   localStorage.setItem('mk_watch_bound',S.watchBound?'1':'0');
   localStorage.setItem('mk_watch_bat',String(S.watchBattery));
   localStorage.setItem('mk_watch_sig',S.watchSignal);
+  localStorage.setItem('mk_watch_nick',S.watchNickname);
+  localStorage.setItem('mk_watch_fw',S.watchFirmware);
   // Save ring state
   localStorage.setItem('mk_ring_bound',S.ringBound?'1':'0');
   localStorage.setItem('mk_ring_bat',String(S.ringBattery));
@@ -589,12 +593,15 @@ function showGameBriefing(score,todayKills,seasonKills){
   // Also show a briefing modal to simulate watch display
   const m=document.getElementById('modal'),box=document.getElementById('modalBox');
   if(!m||!box)return;
+  // 模拟赛季排名（随机生成1-100名）
+  const seasonRank=Math.floor(Math.random()*100)+1;
   box.innerHTML=`<div class="modal-icon">⌚</div>
     <h3>⌚ 手表战绩简报</h3>
     <div class="briefing-content">
       <div class="bc-row"><span class="bc-label">本次击杀</span><span class="bc-value">${score} 只</span></div>
       <div class="bc-row"><span class="bc-label">今日累计</span><span class="bc-value">${S.today} 只</span></div>
       <div class="bc-row"><span class="bc-label">赛季累计</span><span class="bc-value">${S.season} 只</span></div>
+      <div class="bc-row"><span class="bc-label">赛季排名</span><span class="bc-value">#${seasonRank}</span></div>
       <div class="bc-highlight">
         <div class="bch-val">${score>0?Math.round(score/10*100)+'%':'0%'}</div>
         <div class="bch-lbl">击杀效率</div>
@@ -604,6 +611,28 @@ function showGameBriefing(score,todayKills,seasonKills){
   m.classList.add('show');
 }
 
+// Watch status sync timer
+let watchSyncTimer=null;
+function startWatchSync(){
+  stopWatchSync();
+  watchSyncTimer=setInterval(()=>{
+    if(!S.watchBound)return;
+    // Simulate watch status update
+    S.watchBattery=Math.max(5,S.watchBattery-(Math.random()*0.5));
+    S.watchBattery=Math.round(S.watchBattery);
+    // Random signal fluctuation
+    const sigDelta=(Math.random()-0.5)*3;
+    S.watchSignal=String(parseInt(S.watchSignal)+Math.round(sigDelta));
+    save();
+    // Update device page if open
+    const devPage=document.getElementById('page-dev');
+    if(devPage&&devPage.style.display!=='none')renderDev();
+  },5000); // Update every 5 seconds
+}
+function stopWatchSync(){
+  if(watchSyncTimer){clearInterval(watchSyncTimer);watchSyncTimer=null}
+}
+
 function simulateWatchRemote(action){
   // Simulate watch remote control
   if(!S.watchBound){alert('未绑定智能手表！');return}
@@ -611,10 +640,23 @@ function simulateWatchRemote(action){
     if(S.sessionActive){alert('⚡ 出击模式已在运行中');return}
     startSession();
     showWatchNotification('⚡ 出击模式已启动','手表远程触发成功');
+    startWatchSync(); // Start status sync
   }else if(action==='stop'){
     if(!S.sessionActive){alert('⚡ 出击模式未在运行');return}
     endSession();
     showWatchNotification('⏹ 出击模式已停止','手表远程触发成功');
+    stopWatchSync(); // Stop status sync
+  }else if(action==='toggle'){
+    // Toggle session
+    if(S.sessionActive){
+      endSession();
+      showWatchNotification('⏹ 出击模式已停止','手表远程触发成功');
+      stopWatchSync();
+    }else{
+      startSession();
+      showWatchNotification('⚡ 出击模式已启动','手表远程触发成功');
+      startWatchSync();
+    }
   }
 }
 
@@ -1205,19 +1247,20 @@ function renderDev(){
       <div class="watch-header">
         <span class="watch-icon">⌚</span>
         <div class="watch-info">
-          <div class="watch-name">智能手表</div>
-          <div class="watch-model">Mock Watch Pro · 已连接</div>
+          <div class="watch-name">${S.watchNickname} <span style="font-size:11px;color:var(--text-muted);cursor:pointer" onclick="editWatchNickname()">✏️</span></div>
+          <div class="watch-model">Mock Watch Pro · 固件 ${S.watchFirmware} · 已连接</div>
         </div>
         <div style="text-align:right"><div class="text-success" style="font-size:12px">● 在线</div></div>
       </div>
       <div class="watch-status-row">
         <div class="watch-stat"><div class="watch-stat-val text-info">${S.watchBattery}%</div><div class="watch-stat-lbl">电量</div></div>
-        <div class="watch-stat"><div class="watch-stat-val text-success">${S.watchSignal}</div><div class="watch-stat-lbl">信号</div></div>
-        <div class="watch-stat"><div class="watch-stat-val text-brand">⌚</div><div class="watch-stat-lbl">已绑定</div></div>
+        <div class="watch-stat"><div class="watch-stat-val text-success">${S.watchSignal} dBm</div><div class="watch-stat-lbl">信号</div></div>
+        <div class="watch-stat"><div class="watch-stat-val text-brand">${S.watchHeartRate}</div><div class="watch-stat-lbl">心率(BPM)</div></div>
       </div>
       <div class="watch-actions">
         <button class="btn btn-danger btn-sm" onclick="unbindWatch()">解绑手表</button>
         <button class="btn btn-secondary btn-sm" onclick="simulateWatchRemote('start')">远程启动</button>
+        <button class="btn btn-secondary btn-sm" onclick="simulateWatchRemote('stop')">远程停止</button>
         <button class="device-buy-btn" onclick="goBuy('watch')">🛒 选购手表</button>
       </div>
     </div>`;
@@ -1309,6 +1352,16 @@ function bindDev(n){
   }
   renderDev();
 }
+function editWatchNickname(){
+  const nick=prompt('设置手表昵称：',S.watchNickname);
+  if(nick&&nick.trim()){
+    S.watchNickname=nick.trim();
+    save();
+    renderDev();
+    showWatchNotification('⌚ 手表设置','昵称已更新：'+S.watchNickname);
+  }
+}
+
 function unbindWatch(){
   if(!confirm('确定解绑智能手表？\n\n解绑后将失去道具冷却减免等专属权益。'))return;
   S.watchBound=false;
@@ -1502,6 +1555,10 @@ function checkBadges(onDone){
       b.ok=true;
       b.date=nowStr;
       queue.push(b);
+      // 手表联动：解锁勋章时推送通知
+      if(S.watchBound){
+        showWatchNotification('🎖️ 勋章解锁！', '恭喜获得【'+b.name+'】勋章！');
+      }
     }
   });
 
@@ -1590,7 +1647,11 @@ function gameTick(){
 function scheduleSpawn(){
   if(!G.playing)return;
   const elapsed=10-G.timeLeft;
-  const interval=Math.max(180,900-elapsed*80);
+  let interval=Math.max(180,900-elapsed*80);
+  // 手表绑定后，蚊子生成速度提升20%（间隔减少20%）
+  if(S.watchBound){
+    interval=Math.round(interval*0.8);
+  }
   G.spawnTimer=setTimeout(()=>{spawnMosquito();scheduleSpawn()},interval);
 }
 function spawnMosquito(){
