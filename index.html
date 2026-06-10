@@ -389,17 +389,6 @@ body{font-family:system-ui,-apple-system,'Helvetica Neue',sans-serif;background:
 .postgame-shop .ps-btn:active{opacity:.85}
 /* Shop tab in nav */
 .nav-item.shop-active{color:var(--brand)}
-
-/* PK Mode */
-.pk-toggle{display:flex;gap:8px;margin-bottom:12px}
-.pk-mode-btn{flex:1;padding:10px;border:2px solid var(--border);border-radius:var(--radius-md);background:var(--surface);color:var(--text-primary);font-weight:700;cursor:pointer;transition:all .2s;font-size:13px}
-.pk-mode-btn.active{background:var(--brand);color:#fff;border-color:var(--brand)}
-.pk-bar{display:flex;align-items:center;gap:8px;margin-bottom:8px}
-.pk-bar-my{flex:1;height:8px;background:var(--surface-elevated);border-radius:4px;overflow:hidden;display:flex}
-.pk-bar-my > div{background:var(--brand);height:100%;transition:width .3s}
-.pk-bar-opp{flex:1;height:8px;background:var(--surface-elevated);border-radius:4px;overflow:hidden;display:flex}
-.pk-bar-opp > div{background:var(--danger);height:100%;transition:width .3s}
-.pk-score{font-size:12px;font-weight:700;min-width:32px}
 </style>
 </head>
 <body>
@@ -430,18 +419,8 @@ const S={
   // Glasses state
   glassesBound:localStorage.getItem('mk_glasses_bound')==='1',
   glassesBattery:parseInt(localStorage.getItem('mk_glasses_bat'))||72,
-  glassesSignal:localStorage.getItem('mk_glasses_sig')||'-55',
-  // PK stats
-  pkWins:parseInt(localStorage.getItem('mk_pk_wins'))||0,
-  pkLosses:parseInt(localStorage.getItem('mk_pk_losses'))||0,
-  pkDraws:parseInt(localStorage.getItem('mk_pk_draws'))||0,
-  pkTotal:parseInt(localStorage.getItem('mk_pk_total'))||0,
-  pkWinRate:parseFloat(localStorage.getItem('mk_pk_winrate'))||0,
-  pkHistory:JSON.parse(localStorage.getItem('mk_pk_history')||'[]')
+  glassesSignal:localStorage.getItem('mk_glasses_sig')||'-55'
 };
-
-let gameMode='single'; // 'single' | 'pk'
-let G={}; // Game state, initialized in startGame()
 
 const BADGES=[
   {id:'first',name:'首杀之刃',icon:'⚔️',tier:'bronze',desc:'完成第一次击杀',cond:'击杀1只',ok:true,date:'2026-06-01'},
@@ -483,13 +462,6 @@ function save(){
   localStorage.setItem('mk_glasses_bound',S.glassesBound?'1':'0');
   localStorage.setItem('mk_glasses_bat',String(S.glassesBattery));
   localStorage.setItem('mk_glasses_sig',S.glassesSignal);
-  // Save PK stats
-  localStorage.setItem('mk_pk_wins',String(S.pkWins));
-  localStorage.setItem('mk_pk_losses',String(S.pkLosses));
-  localStorage.setItem('mk_pk_draws',String(S.pkDraws));
-  localStorage.setItem('mk_pk_total',String(S.pkTotal));
-  localStorage.setItem('mk_pk_winrate',String(S.pkWinRate));
-  localStorage.setItem('mk_pk_history',JSON.stringify(S.pkHistory.slice(-50)));
 }
 
 // ── Watch Functions ──
@@ -824,6 +796,7 @@ const GAME_LB=[
   {n:'低调清蒸',s:35,a:'低'},{n:'听风吟',s:28,a:'听'},{n:'逐影',s:21,a:'逐'},
   {n:'普通人一个',s:12,a:'普'}
 ];
+let G={playing:false,score:0,timeLeft:10,mosquitoes:[],timer:null,spawnTimer:null,nextId:1};
 let audioCtx=null;
 function playBuzz(){
   try{
@@ -1376,19 +1349,12 @@ function renderMe(){
       <div class="profile-stat"><div class="pval">#23</div><div class="plbl">最佳排名</div></div>
       <div class="profile-stat"><div class="pval">5</div><div class="plbl">勋章</div></div>
       <div class="profile-stat"><div class="pval">45</div><div class="plbl">活跃天</div></div>
-      <div class="profile-stat"><div class="pval">${S.pkTotal||0}</div><div class="plbl">PK场次</div></div>
-      <div class="profile-stat"><div class="pval">${S.pkWinRate||0}%</div><div class="plbl">PK胜率</div></div>
     </div>
     <div class="section-title">最近战绩</div>
     ${SESSIONS.map(s=>`<div class="session-item">
       <span class="session-date">${s.d}</span>
       <span class="session-kills">${s.k}只 · ${s.sc}分</span>
       <span style="font-size:12px;color:var(--text-muted)">${s.t}</span>
-    </div>`).join('')}
-    ${S.pkHistory.slice(-5).reverse().map(h=>`<div class="session-item" style="background:rgba(59,130,246,0.05)">
-      <span class="session-date">${h.d}</span>
-      <span class="session-kills">PK ${h.ps}只 vs ${h.os}只</span>
-      <span style="font-size:12px;color:${h.r==='win'?'var(--success)':h.r==='loss'?'var(--danger)':'var(--text-muted)'}">${h.r==='win'?'胜利':h.r==='loss'?'失败':'平局'}</span>
     </div>`).join('')}
     <div style="margin-top:16px">
       <div class="menu-item" onclick="renderShop()"><span class="menu-label">🛒 设备商城</span><span class="menu-arrow">›</span></div>
@@ -1402,8 +1368,7 @@ function doLogout(){S.loggedIn=false;S.sessionActive=false;stopKillLoop();save()
 // ── Game ──
 function startGame(){
   stopGame();
-  G={playing:true,score:0,timeLeft:10,mosquitoes:[],timer:null,spawnTimer:null,nextId:1,activeItem:null,multiplier:1,itemTimer:null,
-     mode:gameMode,opponentScore:0,opponentTimer:null};
+  G={playing:true,score:0,timeLeft:10,mosquitoes:[],timer:null,spawnTimer:null,nextId:1,activeItem:null,multiplier:1,itemTimer:null};
   const board=document.getElementById('gameBoard');if(!board)return;
   const overlay=board.querySelector('.game-overlay');
   if(overlay)overlay.remove();
@@ -1411,11 +1376,7 @@ function startGame(){
   updateGameHUD();
   G.timer=setInterval(gameTick,1000);
   scheduleSpawn();
-  // PK模式：启动模拟对手
-  if(G.mode==='pk'){
-    startOpponentAI();
-  }
-  // Watch联动
+  // Watch联动：启动心率模拟，发送通知
   if(S.watchBound){
     startHeartRate();
     showWatchNotification('🎮 游戏开始','极速灭蚊模式已启动！');
@@ -1424,7 +1385,6 @@ function startGame(){
 function stopGame(){
   if(G.timer){clearInterval(G.timer);G.timer=null}
   if(G.spawnTimer){clearTimeout(G.spawnTimer);G.spawnTimer=null}
-  if(G.opponentTimer){clearInterval(G.opponentTimer);G.opponentTimer=null}
   G.mosquitoes.forEach(m=>{const e=document.getElementById('mq-'+m.id);if(e)e.remove()});
   G.playing=false;
 }
@@ -1477,7 +1437,6 @@ function killMosquito(id,x,y,fromClear){
   G.mosquitoes.splice(idx,1);
   const pts=G.multiplier||1;
   G.score+=pts;
-    if(G.mode==='pk')updatePKHUD();
   updateGameHUD();
   if(!fromClear){
     if(pts>1){showMultiFX(x,y,pts)}
@@ -1502,7 +1461,6 @@ function doAOE(cx,cy,radius){
     if(mm.el)mm.el.classList.add('killed');
     const pts=G.multiplier||1;
     G.score+=pts;
-    if(G.mode==='pk')updatePKHUD();
     if(pts>1)showMultiFX(mm.x,mm.y,pts);
     else showKillFX(mm.x,mm.y);
     setTimeout(function(){if(mm.el)mm.el.remove()},300);
@@ -1537,16 +1495,10 @@ function endGame(){
   clearItemEffect();G.playing=false;
   if(G.timer){clearInterval(G.timer);G.timer=null}
   if(G.spawnTimer){clearTimeout(G.spawnTimer);G.spawnTimer=null}
-  if(G.opponentTimer){clearInterval(G.opponentTimer);G.opponentTimer=null}
   G.mosquitoes.forEach(m=>{if(m.el)m.el.remove()});
   G.mosquitoes=[];
   const board=document.getElementById('gameBoard');
   if(board)board.classList.remove('playing');
-  // PK模式：显示PK结果弹窗
-  if(G.mode==='pk'){
-    showPKResult();
-    return;
-  }
   const isNewHigh=G.score>S.gameHighScore;
   if(isNewHigh){S.gameHighScore=G.score;localStorage.setItem('mk_ghs',G.score);}
   // Watch联动：停止心率模拟，发送通知，显示战绩简报
@@ -1561,105 +1513,11 @@ function endGame(){
   }
   renderGame();
 }
-// ── PK Mode Functions ──
-function showPKResult(){
-  // 判定胜负
-  let result='draw';
-  if(G.score>G.opponentScore)result='win';
-  else if(G.score<G.opponentScore)result='loss';
-  // 更新PK战绩
-  S.pkTotal++;
-  if(result==='win')S.pkWins++;
-  else if(result==='loss')S.pkLosses++;
-  else S.pkDraws++;
-  S.pkWinRate=S.pkTotal>0?Math.round(S.pkWins/S.pkTotal*100):0;
-  // 记录历史
-  const now=new Date();
-  S.pkHistory.push({d:(now.getMonth()+1)+'/'+now.getDate()+' '+now.getHours()+':'+(now.getMinutes()<10?'0':'')+now.getMinutes(),ps:G.score,os:G.opponentScore,r:result});
-  if(S.pkHistory.length>50)S.pkHistory=S.pkHistory.slice(-50);
-  save();
-  // 趣味评语
-  let title='',icon='',comment='';
-  if(result==='win'){
-    title='🎉 胜利！';icon='🏆';
-    const c=['太强了！对手望尘莫及！','灭蚊之王，当之无愧！','实力碾压，毫无悬念！','对手已被你吓跑！'];
-    comment=c[Math.floor(Math.random()*c.length)];
-  }else if(result==='loss'){
-    title='😢 失败...';icon='💪';
-    const c=['下次一定行！对手也是高手！','别灰心，勤学苦练终有所成！','差一点点，再来一局！','失败是成功之母，继续加油！'];
-    comment=c[Math.floor(Math.random()*c.length)];
-  }else{
-    title='🤝 平局！';icon='🎯';
-    const c=['旗鼓相当，高手过招！','平分秋色，下次再战！','势均力敌，精彩对决！','默契十足，不如来个rematch？'];
-    comment=c[Math.floor(Math.random()*c.length)];
-  }
-  const m=document.getElementById('modal'),box=document.getElementById('modalBox');
-  if(!m||!box)return;
-  box.innerHTML=`
-    <div class="modal-icon">${icon}</div>
-    <h3>${title}</h3>
-    <div style="margin:12px 0;font-size:14px;color:var(--text-secondary)">${comment}</div>
-    <div style="display:flex;justify-content:space-around;margin:16px 0">
-      <div style="text-align:center">
-        <div style="font-size:24px;font-weight:800;color:var(--brand)">${G.score}</div>
-        <div style="font-size:12px;color:var(--text-muted)">你</div>
-      </div>
-      <div style="text-align:center">
-        <div style="font-size:24px;font-weight:800;color:var(--danger)">${G.opponentScore}</div>
-        <div style="font-size:12px;color:var(--text-muted)">对手</div>
-      </div>
-    </div>
-    <div style="font-size:12px;color:var(--text-secondary);margin-bottom:12px">当前战绩：${S.pkWins}胜 ${S.pkLosses}负 ${S.pkDraws}平（胜率${S.pkWinRate}%）</div>
-    <button class="modal-close" onclick="closeModal();renderGame()">返回</button>
-    <button class="btn btn-brand" style="margin-top:8px;width:100%" onclick="closeModal();G.mode='pk';startGame()">🔄 再来一局</button>
-  `;
-  m.classList.add('show');
-}
-
-function startOpponentAI(){
-  if(G.mode!=='pk'||!G.playing)return;
-  // 动态调整AI难度
-  const baseDelay=800;
-  const randDelay=Math.random()*700;
-  G.opponentTimer=setTimeout(()=>{
-    if(!G.playing||G.mode!=='pk')return;
-    G.opponentScore++;
-    updatePKHUD();
-    startOpponentAI(); // 递归调用，继续模拟
-  },baseDelay+randDelay);
-}
-
-function updatePKHUD(){
-  const el=document.getElementById('pkBarMy');
-  const el2=document.getElementById('pkBarOpp');
-  if(el&&el2){
-    const myScore=G.score||0;
-    const opScore=G.opponentScore||0;
-    const total=myScore+opScore;
-    if(total>0){
-      el.style.width=(myScore/total*100)+'%';
-      el2.style.width=(opScore/total*100)+'%';
-    }
-  }
-  const el3=document.getElementById('pkMyScore');
-  const el4=document.getElementById('pkOpScore');
-  if(el3)el3.textContent=G.score;
-  if(el4)el4.textContent=G.opponentScore;
-}
-
-function switchGameMode(mode){
-  gameMode=mode;
-  renderGame();
-}
-
 function updateGameHUD(){
-
-
   const tel=document.getElementById('gameTimeLeft');
   const sel=document.getElementById('gameScore');
   if(tel){tel.textContent=G.timeLeft;tel.classList.toggle('urgent',G.timeLeft<=3)}
   if(sel)sel.textContent=G.score;
-  if(G.mode==='pk')updatePKHUD();
 }
 function renderGame(){
   const el=document.getElementById('page-game');if(!el)return;
@@ -1688,18 +1546,6 @@ function renderGame(){
     boardHTML='<div class="game-overlay"><div class="go-icon">🦟</div>'+ov+'<button class="btn btn-brand" style="width:200px;margin-top:16px" onclick="startGame()">'+(G.score>0?'🔄 再来一局':'⚡ 开始游戏')+'</button></div>';
   }
   let lbHTML='';
-  /* PK mode toggle */
-  let pkToggleHtml='';
-  if(!G.playing){
-    const singleActive=gameMode==='single'?'active':'';
-    const pkActive=gameMode==='pk'?'active':'';
-    pkToggleHtml='<div class="pk-toggle"><button class="pk-mode-btn '+singleActive+'" data-mode="single">🎮 单人模式</button><button class="pk-mode-btn '+pkActive+'" data-mode="pk">🆚 好友PK</button></div>';
-  }
-  /* PK bar (only in PK mode while playing) */
-  let pkBarHtml='';
-  if(G.playing && G.mode==='pk'){
-    pkBarHtml='<div class="pk-bar"><div class="pk-bar-my" id="pkBarMy"></div><div class="pk-bar-opp" id="pkBarOpp"></div><div class="pk-score" id="pkMyScore">0</div><div class="pk-score-opp" id="pkOpScore">0</div></div>';
-  }
   if(G.score>0){
     let rows='';
     for(let i=0;i<merged.length;i++){
@@ -1727,7 +1573,7 @@ function renderGame(){
   if(S.glassesBound&&!G.playing){
     modeSwitchesHtml+='<div class="game-mode-switch" data-feature="AR实景模式" data-desc="通过智能AR眼镜将虚拟蚊子叠加到现实场景中，实现AR实景灭蚊体验。支持空间定位、虚拟物理碰撞、多人协作模式。绑定智能AR眼镜后自动解锁。" data-date="2026年Q4"><div class="gms-label"><span class="gms-icon">🥽</span><div><div style="font-size:14px;font-weight:700">AR实景模式</div><div class="gms-hint">智能AR眼镜已绑定 · 功能开发中</div></div></div><div class="toggle-switch" id="arToggle"></div></div>';
   }
-  el.innerHTML='<div class="game-hud"><div class="game-hud-item"><div class="gh-val'+(G.playing&&G.timeLeft<=3?' urgent':'')+'" id="gameTimeLeft">'+G.timeLeft+'</div><div class="gh-lbl">⏱ 剩余秒数</div></div><div class="game-hud-item"><div class="gh-val text-success" id="gameScore">'+G.score+'</div><div class="gh-lbl">🦟 '+(G.playing?'实时击杀':'击杀数')+'</div></div><div class="game-hud-item"><div class="gh-val text-brand">'+S.gameHighScore+'</div><div class="gh-lbl">🏆 最高记录</div></div>'+hrHtml+'</div>'+pkToggleHtml+modeSwitchesHtml+pkBarHtml+'<div class="game-board'+(G.playing?' playing':'')+'" id="gameBoard">'+boardHTML+'</div>'+lbHTML+postGameShopHtml+'<div class="card" style="text-align:center;padding:14px"><div style="font-size:13px;color:var(--text-secondary)">💡 提示：蚊子会在2秒后自动飞走，手速要快！</div></div>';
+  el.innerHTML='<div class="game-hud"><div class="game-hud-item"><div class="gh-val'+(G.playing&&G.timeLeft<=3?' urgent':'')+'" id="gameTimeLeft">'+G.timeLeft+'</div><div class="gh-lbl">⏱ 剩余秒数</div></div><div class="game-hud-item"><div class="gh-val text-success" id="gameScore">'+G.score+'</div><div class="gh-lbl">🦟 '+(G.playing?'实时击杀':'击杀数')+'</div></div><div class="game-hud-item"><div class="gh-val text-brand">'+S.gameHighScore+'</div><div class="gh-lbl">🏆 最高记录</div></div>'+hrHtml+'</div>'+modeSwitchesHtml+'<div class="game-board'+(G.playing?' playing':'')+'" id="gameBoard">'+boardHTML+'</div>'+lbHTML+postGameShopHtml+'<div class="card" style="text-align:center;padding:14px"><div style="font-size:13px;color:var(--text-secondary)">💡 提示：蚊子会在2秒后自动飞走，手速要快！</div></div>';
   /* Attach click handlers to game mode switches (avoid inline onclick escaping issues) */
   el.querySelectorAll('.game-mode-switch').forEach(function(div){
     div.addEventListener('click', function(){
@@ -1738,15 +1584,7 @@ function renderGame(){
     });
   });
   if(G.playing)updateGameHUD();
-  /* PK mode toggle buttons */
-  el.querySelectorAll('[data-mode]').forEach(function(btn){
-    btn.addEventListener('click', function(){
-      var mode = btn.getAttribute('data-mode');
-      if(mode==='single'){gameMode='single';renderGame();}
-      else if(mode==='pk'){gameMode='pk';renderGame();}
-    });
-  });
-  
+
   /* Inject item bar */
   const ib=document.getElementById('gameItemBar');
   if(ib)ib.remove();
