@@ -418,6 +418,19 @@ body{font-family:system-ui,-apple-system,'Helvetica Neue',sans-serif;background:
 .postgame-shop .ps-btn:active{opacity:.85}
 /* Shop tab in nav */
 .nav-item.shop-active{color:var(--brand)}
+
+/* ── PK Mode ── */
+.pk-toggle{display:flex;gap:8px;margin-bottom:12px}
+.pk-mode-btn{flex:1;padding:10px;border:2px solid var(--border);border-radius:var(--radius-sm);background:transparent;font-size:14px;font-weight:700;cursor:pointer;transition:all .2s}
+.pk-mode-btn.active{background:var(--brand);color:#fff;border-color:var(--brand)}
+.pk-bar{display:flex;align-items:center;gap:6px;margin-bottom:8px}
+.pk-bar-my{flex:1;height:8px;background:var(--surface-elevated);border-radius:4px;overflow:hidden}
+.pk-bar-my>div{background:var(--brand);height:100%;transition:width .3s;border-radius:4px}
+.pk-bar-opp{flex:1;height:8px;background:var(--surface-elevated);border-radius:4px;overflow:hidden}
+.pk-bar-opp>div{background:var(--danger);height:100%;transition:width .3s;border-radius:4px}
+.pk-score{font-size:12px;color:var(--brand);font-weight:700;min-width:28px;text-align:right}
+.pk-score-opp{font-size:12px;color:var(--danger);font-weight:700;min-width:28px}
+.pk-vs{font-size:11px;color:var(--text-muted);font-weight:700;margin:0 2px}
 </style>
 </head>
 <body>
@@ -453,7 +466,14 @@ const S={
   nightKills:parseInt(localStorage.getItem('mk_night_kills'))||0,
   weeklyTopThree:localStorage.getItem('mk_weekly_top3')==='1'?1:0,
   seasonChamp:localStorage.getItem('mk_season_champ')==='1'?1:0,
-  unlockedBadges:JSON.parse(localStorage.getItem('mk_unlocked_badges')||'["first","ten","hundred","combo","weekly"]')
+  unlockedBadges:JSON.parse(localStorage.getItem('mk_unlocked_badges')||'["first","ten","hundred","combo","weekly"]'),
+  // PK stats
+  pkWins:parseInt(localStorage.getItem('mk_pk_wins'))||0,
+  pkLosses:parseInt(localStorage.getItem('mk_pk_losses'))||0,
+  pkDraws:parseInt(localStorage.getItem('mk_pk_draws'))||0,
+  pkTotal:parseInt(localStorage.getItem('mk_pk_total'))||0,
+  pkWinRate:parseFloat(localStorage.getItem('mk_pk_winrate'))||0,
+  pkHistory:JSON.parse(localStorage.getItem('mk_pk_history')||'[]')
 };
 
 const BADGES=[
@@ -501,7 +521,19 @@ function save(){
   localStorage.setItem('mk_weekly_top3',S.weeklyTopThree?'1':'0');
   localStorage.setItem('mk_season_champ',S.seasonChamp?'1':'0');
   localStorage.setItem('mk_unlocked_badges',JSON.stringify(S.unlockedBadges));
+  // Save PK stats
+  localStorage.setItem('mk_pk_wins',String(S.pkWins));
+  localStorage.setItem('mk_pk_losses',String(S.pkLosses));
+  localStorage.setItem('mk_pk_draws',String(S.pkDraws));
+  localStorage.setItem('mk_pk_total',String(S.pkTotal));
+  localStorage.setItem('mk_pk_winrate',String(S.pkWinRate));
+  localStorage.setItem('mk_pk_history',JSON.stringify(S.pkHistory.slice(-50)));
 }
+
+
+// PK Mode
+let gameMode="single"; // "single" | "pk"
+let G={}; // Game state
 
 // ── Watch Functions ──
 let hrTimer=null; // Heart rate timer
@@ -836,7 +868,6 @@ const GAME_LB=[
   {n:'低调清蒸',s:35,a:'低'},{n:'听风吟',s:28,a:'听'},{n:'逐影',s:21,a:'逐'},
   {n:'普通人一个',s:12,a:'普'}
 ];
-let G={playing:false,score:0,timeLeft:10,mosquitoes:[],timer:null,spawnTimer:null,nextId:1};
 let audioCtx=null;
 function playBuzz(){
   try{
@@ -1503,7 +1534,8 @@ function renderMe(){
       <div class="profile-stat"><div class="pval">${S.season}</div><div class="plbl">总击杀</div></div>
       <div class="profile-stat"><div class="pval">#23</div><div class="plbl">最佳排名</div></div>
       <div class="profile-stat"><div class="pval">${(S.unlockedBadges||[]).length}/${BADGES.length}</div><div class="plbl">勋章</div></div>
-      <div class="profile-stat"><div class="pval">45</div><div class="plbl">活跃天</div></div>
+      <div class="profile-stat"><div class="pval">${S.pkWinRate||0}%</div><div class="plbl">PK胜率</div></div>
+      <div class="profile-stat"><div class="pval">${S.pkTotal||0}</div><div class="plbl">PK场次</div></div>
     </div>
     <div class="section-title">最近战绩</div>
     ${SESSIONS.map(s=>`<div class="session-item">
@@ -1511,6 +1543,8 @@ function renderMe(){
       <span class="session-kills">${s.k}只 · ${s.sc}分</span>
       <span style="font-size:12px;color:var(--text-muted)">${s.t}</span>
     </div>`).join('')}
+         <div style="font-size:11px;color:var(--text-muted);margin-top:8px;margin-bottom:4px">—— PK 战绩 ——</div>
+    ${S.pkHistory&&S.pkHistory.length>0?S.pkHistory.slice(-3).map(function(p){return '<div class="session-item" style="opacity:.85"><span class="session-date">'+p.d+'</span><span class="session-kills">'+p.s+'只 vs '+p.o+'只 · '+(p.r==='win'?'🏆胜利':p.r==='lose'?'😢失败':'🤝平局')+'</span><span style="font-size:12px;color:var(--text-muted)">PK对战</span></div>';}).join(''):'<div style="font-size:12px;color:var(--text-muted);margin-top:4px">暂无PK战绩</div>'}
     <div style="margin-top:16px">
       <div class="menu-item" onclick="renderShop()"><span class="menu-label">🛒 设备商城</span><span class="menu-arrow">›</span></div>
       <div class="menu-item" onclick="alert('设置页面')"><span class="menu-label">⚙️ 设置</span><span class="menu-arrow">›</span></div>
@@ -1523,7 +1557,8 @@ function doLogout(){S.loggedIn=false;S.sessionActive=false;stopKillLoop();save()
 // ── Game ──
 function startGame(){
   stopGame();
-  G={playing:true,score:0,timeLeft:10,mosquitoes:[],timer:null,spawnTimer:null,nextId:1,activeItem:null,multiplier:1,itemTimer:null};
+  G={playing:true,score:0,timeLeft:10,mosquitoes:[],timer:null,spawnTimer:null,nextId:1,activeItem:null,multiplier:1,itemTimer:null,
+     mode:gameMode,opponentScore:0,opponentTimer:null};
   const board=document.getElementById('gameBoard');if(!board)return;
   const overlay=board.querySelector('.game-overlay');
   if(overlay)overlay.remove();
@@ -1536,10 +1571,13 @@ function startGame(){
     startHeartRate();
     showWatchNotification('🎮 游戏开始','极速灭蚊模式已启动！');
   }
+  // PK mode: start opponent AI
+  if(G.mode==='pk'){startOpponentAI();}
 }
 function stopGame(){
   if(G.timer){clearInterval(G.timer);G.timer=null}
   if(G.spawnTimer){clearTimeout(G.spawnTimer);G.spawnTimer=null}
+  if(G.opponentTimer){clearInterval(G.opponentTimer);G.opponentTimer=null}
   G.mosquitoes.forEach(m=>{const e=document.getElementById('mq-'+m.id);if(e)e.remove()});
   G.playing=false;
 }
@@ -1670,7 +1708,10 @@ function endGame(){
     showGameBriefing(G.score,S.today,S.season);
   }
   // 检测勋章解锁
-  checkBadges(function(){renderGame();});
+  checkBadges(function(){/* after badges */});
+  // PK模式：显示PK结果弹窗
+  if(G.mode==='pk'){showPKResult();return;}
+  renderGame();
 }
 function updateGameHUD(){
   const tel=document.getElementById('gameTimeLeft');
@@ -1722,6 +1763,17 @@ function renderGame(){
   if(G.score > 0 && !G.playing){
     postGameShopHtml = renderPostGameShop();
   }
+  // PK Mode UI
+  let pkToggleHtml='';
+  if(!G.playing){
+    const singleActive=gameMode==='single'?'active':'';
+    const pkActive=gameMode==='pk'?'active':'';
+    pkToggleHtml='<div class="pk-toggle"><button class="pk-mode-btn '+singleActive+'" data-mode="single">🎮 单人模式</button><button class="pk-mode-btn '+pkActive+'" data-mode="pk">🆚 好友PK</button></div>';
+  }
+  let pkBarHtml='';
+  if(G.playing && G.mode==='pk'){
+    pkBarHtml='<div class="pk-bar"><div class="pk-bar-my"><div style="width:'+Math.max(5,G.score/(G.score+G.opponentScore+1)*100)+'%"></div></div><div class="pk-score">'+G.score+'</div><div class="pk-vs">VS</div><div class="pk-score-opp">'+G.opponentScore+'</div><div class="pk-bar-opp"><div style="width:'+Math.max(5,G.opponentScore/(G.score+G.opponentScore+1)*100)+'%"></div></div></div>';
+  }
 
   const hrHtml=S.watchBound&&G.playing?'<div class="game-hud-item heart-rate-display"><span class="hr-icon">❤️</span><span class="hr-val" id="heartRateVal">'+S.watchHeartRate+'</span><span class="hr-label">BPM</span></div>':'';
   /* Game mode switches */
@@ -1732,7 +1784,7 @@ function renderGame(){
   if(S.glassesBound&&!G.playing){
     modeSwitchesHtml+='<div class="game-mode-switch" data-feature="AR实景模式" data-desc="通过智能AR眼镜将虚拟蚊子叠加到现实场景中，实现AR实景灭蚊体验。支持空间定位、虚拟物理碰撞、多人协作模式。绑定智能AR眼镜后自动解锁。" data-date="2026年Q4"><div class="gms-label"><span class="gms-icon">🥽</span><div><div style="font-size:14px;font-weight:700">AR实景模式</div><div class="gms-hint">智能AR眼镜已绑定 · 功能开发中</div></div></div><div class="toggle-switch" id="arToggle"></div></div>';
   }
-  el.innerHTML='<div class="game-hud"><div class="game-hud-item"><div class="gh-val'+(G.playing&&G.timeLeft<=3?' urgent':'')+'" id="gameTimeLeft">'+G.timeLeft+'</div><div class="gh-lbl">⏱ 剩余秒数</div></div><div class="game-hud-item"><div class="gh-val text-success" id="gameScore">'+G.score+'</div><div class="gh-lbl">🦟 '+(G.playing?'实时击杀':'击杀数')+'</div></div><div class="game-hud-item"><div class="gh-val text-brand">'+S.gameHighScore+'</div><div class="gh-lbl">🏆 最高记录</div></div>'+hrHtml+'</div>'+modeSwitchesHtml+'<div class="game-board'+(G.playing?' playing':'')+'" id="gameBoard">'+boardHTML+'</div>'+lbHTML+postGameShopHtml+'<div class="card" style="text-align:center;padding:14px"><div style="font-size:13px;color:var(--text-secondary)">💡 提示：蚊子会在2秒后自动飞走，手速要快！</div></div>';
+  el.innerHTML='<div class="game-hud"><div class="game-hud-item"><div class="gh-val'+(G.playing&&G.timeLeft<=3?' urgent':'')+'" id="gameTimeLeft">'+G.timeLeft+'</div><div class="gh-lbl">⏱ 剩余秒数</div></div><div class="game-hud-item"><div class="gh-val text-success" id="gameScore">'+G.score+'</div><div class="gh-lbl">🦟 '+(G.playing?'实时击杀':'击杀数')+'</div></div><div class="game-hud-item"><div class="gh-val text-brand">'+S.gameHighScore+'</div><div class="gh-lbl">🏆 最高记录</div></div>'+hrHtml+'</div>'+pkToggleHtml+pkBarHtml+modeSwitchesHtml+'<div class="game-board'+(G.playing?' playing':'')+'" id="gameBoard">'+boardHTML+'</div>'+lbHTML+postGameShopHtml+'<div class="card" style="text-align:center;padding:14px"><div style="font-size:13px;color:var(--text-secondary)">💡 提示：蚊子会在2秒后自动飞走，手速要快！</div></div>';
   /* Attach click handlers to game mode switches (avoid inline onclick escaping issues) */
   el.querySelectorAll('.game-mode-switch').forEach(function(div){
     div.addEventListener('click', function(){
@@ -1743,6 +1795,14 @@ function renderGame(){
     });
   });
   if(G.playing)updateGameHUD();
+  // PK mode button event listeners
+  el.querySelectorAll('.pk-mode-btn').forEach(function(btn){
+    btn.addEventListener('click',function(){
+      const mode=btn.getAttribute('data-mode');
+      if(mode==='pk'){gameMode='pk';}else{gameMode='single';}
+      renderGame();
+    });
+  });
 
   /* Inject item bar */
   const ib=document.getElementById('gameItemBar');
@@ -1755,6 +1815,51 @@ function renderGame(){
 }
 
 
+
+// ── PK Mode Functions ──
+function startOpponentAI(){
+  if(!G.playing || G.mode!=='pk')return;
+  // Simulate opponent killing mosquitoes with random delay
+  const delay=800+Math.random()*1500;
+  G.opponentTimer=setTimeout(function(){
+    if(!G.playing || G.mode!=='pk')return;
+    G.opponentScore++;
+    updatePKHUD();
+    startOpponentAI(); // recurse
+  },delay);
+}
+function updatePKHUD(){
+  const myBar=document.querySelector('.pk-bar-my > div');
+  const oppBar=document.querySelector('.pk-bar-opp > div');
+  const myScore=document.querySelector('.pk-score');
+  const oppScore=document.querySelector('.pk-score-opp');
+  if(myBar&&oppBar){
+    const total=G.score+G.opponentScore+1;
+    myBar.style.width=Math.max(5,G.score/total*100)+'%';
+    oppBar.style.width=Math.max(5,G.opponentScore/total*100)+'%';
+  }
+  if(myScore)myScore.textContent=G.score;
+  if(oppScore)oppScore.textContent=G.opponentScore;
+}
+function showPKResult(){
+  const m=document.getElementById('modal'),box=document.getElementById('modalBox');
+  if(!m||!box)return;
+  let result='',comment='',fun='';
+  if(G.score>G.opponentScore){result='win';S.pkWins++;comment='胜利！';fun='你把蚊子消灭得干干净净，对手只能望蚊兴叹！';}
+  else if(G.score<G.opponentScore){result='lose';S.pkLosses++;comment='失败...';fun='蚊子选了对手那边，下次加油！';}
+  else{result='draw';S.pkDraws++;comment='平局！';fun='旗鼓相当！蚊子都不知道该往哪边飞！';}
+  S.pkTotal++;
+  S.pkWinRate=Math.round(S.pkWins/S.pkTotal*100);
+  const now=new Date();
+  const nowStr=now.getFullYear()+'-'+(String(now.getMonth()+1).padStart(2,'0'))+'-'+(String(now.getDate()).padStart(2,'0'));
+  S.pkHistory.push({d:nowStr,s:G.score,o:G.opponentScore,r:result});
+  if(S.pkHistory.length>50)S.pkHistory=S.pkHistory.slice(-50);
+  save();
+  const resultColor=result==='win'?'var(--success)':result==='lose'?'var(--danger)':'var(--warning)';
+  const resultIcon=result==='win'?'🏆':result==='lose'?'😢':'🤝';
+  box.innerHTML='<div style="font-size:48px;margin-bottom:10px">'+resultIcon+'</div>'+'<div style="font-size:22px;font-weight:800;color:'+resultColor+';margin-bottom:8px">'+comment+'</div>'+'<div style="font-size:14px;color:var(--text-secondary);margin-bottom:16px">'+fun+'</div>'+'<div style="display:flex;justify-content:space-around;margin-bottom:20px"><div><div style="font-size:20px;font-weight:800">'+G.score+'</div><div style="font-size:11px;color:var(--text-muted)">你</div></div>'+'<div style="font-size:18px;color:var(--text-muted)">VS</div>'+'<div><div style="font-size:20px;font-weight:800">'+G.opponentScore+'</div><div style="font-size:11px;color:var(--text-muted)">对手</div></div></div>'+'<button class="modal-close" onclick="closeModal();renderGame();" style="width:100%">🔄 再来一局</button>';
+  m.classList.add('show');
+}
 // ── Shop Page ──
 
 function renderShop(){
