@@ -76,12 +76,41 @@ body{font-family:system-ui,-apple-system,'Helvetica Neue',sans-serif;background:
 .rank-name{flex:1;font-size:14px;font-weight:600;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
 .rank-score{font-family:'Courier New',monospace;font-size:18px;font-weight:800;color:var(--brand);flex-shrink:0}
 /* Badges */
+/* ── Badge V1.1 ── */
 .badge-grid{display:grid;grid-template-columns:1fr 1fr;gap:10px}
-.badge-card{background:var(--surface);border-radius:var(--radius-md);padding:18px 12px;text-align:center;border:1px solid var(--border);cursor:pointer;transition:transform .15s,opacity .2s}
+.badge-card{background:var(--surface);border-radius:var(--radius-md);padding:14px 10px;text-align:center;border:1px solid var(--border);cursor:pointer;transition:transform .15s,opacity .2s;position:relative}
 .badge-card:active{transform:scale(.96)}
-.badge-card.locked{opacity:.3;pointer-events:none}
-.badge-icon{font-size:36px;margin-bottom:6px;line-height:1}
-.badge-name{font-size:13px;font-weight:700;margin-bottom:4px}
+.badge-card.locked{opacity:.45;cursor:default}
+.badge-card.locked .badge-icon{filter:grayscale(1)}
+.badge-icon{font-size:34px;margin-bottom:5px;line-height:1}
+.badge-name{font-size:12px;font-weight:700;margin-bottom:4px}
+.badge-cond{font-size:10px;color:var(--text-muted);margin-top:3px;line-height:1.4}
+.badge-progress-wrap{margin:6px 0 2px;height:4px;background:var(--surface-elevated);border-radius:4px;overflow:hidden}
+.badge-progress-bar{height:100%;border-radius:4px;transition:width .4s}
+.badge-progress-bar.tier-bronze{background:var(--bronze)}
+.badge-progress-bar.tier-silver{background:var(--silver)}
+.badge-progress-bar.tier-gold{background:var(--gold)}
+.badge-progress-bar.tier-legend{background:linear-gradient(90deg,var(--legend),var(--brand))}
+.badge-progress-label{font-size:9px;color:var(--text-muted);margin-bottom:2px}
+/* 全集专属 */
+.badge-all-star{text-align:center;padding:14px;background:linear-gradient(135deg,rgba(255,215,0,.15),rgba(255,107,53,.1));border:1px solid rgba(255,215,0,.3);border-radius:var(--radius-md);margin-bottom:12px}
+.badge-all-star .as-icon{font-size:32px;margin-bottom:4px}
+.badge-all-star .as-title{font-size:14px;font-weight:800;color:var(--gold)}
+.badge-all-star .as-sub{font-size:11px;color:var(--text-secondary);margin-top:2px}
+/* 勋章计数 */
+.badge-count-bar{display:flex;align-items:center;justify-content:space-between;padding:10px 14px;background:var(--surface);border-radius:var(--radius-md);margin-bottom:10px;border:1px solid var(--border)}
+.badge-count-bar .bcb-left{font-size:13px;color:var(--text-secondary)}
+.badge-count-bar .bcb-right{font-size:15px;font-weight:800;color:var(--brand);font-family:'Courier New',monospace}
+/* 解锁弹窗动画 */
+@keyframes badgeUnlockPop{0%{transform:scale(.4) rotate(-15deg);opacity:0}60%{transform:scale(1.15) rotate(3deg)}100%{transform:scale(1) rotate(0);opacity:1}}
+.badge-unlock-popup{position:fixed;top:50%;left:50%;transform:translate(-50%,-50%);z-index:200;background:var(--surface-elevated);border:2px solid var(--gold);border-radius:var(--radius-lg);padding:28px 24px;text-align:center;max-width:280px;width:90%;box-shadow:0 0 40px rgba(255,215,0,.3);animation:badgeUnlockPop .5s cubic-bezier(.175,.885,.32,1.275) both}
+.badge-unlock-overlay{position:fixed;inset:0;z-index:199;background:rgba(0,0,0,.7)}
+.badge-unlock-icon{font-size:52px;display:block;margin-bottom:10px}
+.badge-unlock-title{font-size:18px;font-weight:800;color:var(--gold);margin-bottom:4px}
+.badge-unlock-name{font-size:14px;color:var(--text-primary);margin-bottom:8px}
+.badge-unlock-tier{display:inline-block;padding:3px 12px;border-radius:var(--radius-full);font-size:11px;font-weight:700;margin-bottom:14px}
+.badge-unlock-btn{display:block;width:100%;padding:11px;background:var(--brand);color:#000;border:none;border-radius:var(--radius-sm);font-size:14px;font-weight:700;cursor:pointer}
+
 .tag{display:inline-block;padding:3px 10px;border-radius:var(--radius-full);font-size:10px;font-weight:700}
 .tag-bronze{background:rgba(205,127,50,.15);color:var(--bronze)}
 .tag-silver{background:rgba(192,192,192,.15);color:var(--silver)}
@@ -419,18 +448,23 @@ const S={
   // Glasses state
   glassesBound:localStorage.getItem('mk_glasses_bound')==='1',
   glassesBattery:parseInt(localStorage.getItem('mk_glasses_bat'))||72,
-  glassesSignal:localStorage.getItem('mk_glasses_sig')||'-55'
+  glassesSignal:localStorage.getItem('mk_glasses_sig')||'-55',
+  // Badge V1.1: extra stats
+  nightKills:parseInt(localStorage.getItem('mk_night_kills'))||0,
+  weeklyTopThree:localStorage.getItem('mk_weekly_top3')==='1'?1:0,
+  seasonChamp:localStorage.getItem('mk_season_champ')==='1'?1:0,
+  unlockedBadges:JSON.parse(localStorage.getItem('mk_unlocked_badges')||'["first","ten","hundred","combo","weekly"]')
 };
 
 const BADGES=[
-  {id:'first',name:'首杀之刃',icon:'⚔️',tier:'bronze',desc:'完成第一次击杀',cond:'击杀1只',ok:true,date:'2026-06-01'},
-  {id:'ten',name:'十步一杀',icon:'🎯',tier:'silver',desc:'累计击杀10只',cond:'累计10只',ok:true,date:'2026-06-02'},
-  {id:'hundred',name:'百蚊斩',icon:'🗡️',tier:'gold',desc:'累计击杀100只',cond:'累计100只',ok:true,date:'2026-06-04'},
-  {id:'thousand',name:'千军破',icon:'🔥',tier:'legend',desc:'累计击杀1000只',cond:'累计1000只',ok:false},
-  {id:'combo',name:'连击王者',icon:'⚡',tier:'silver',desc:'单次出击连杀50只',cond:'单次连击50',ok:true,date:'2026-06-05'},
-  {id:'night',name:'暗夜猎手',icon:'🌙',tier:'gold',desc:'夜间击杀100只',cond:'22:00-6:00累计100',ok:false},
-  {id:'weekly',name:'周榜之星',icon:'🏆',tier:'bronze',desc:'进入周排行榜前三',cond:'周榜TOP3',ok:true,date:'2026-06-07'},
-  {id:'season_champ',name:'赛季冠军',icon:'👑',tier:'legend',desc:'赛季排行榜第一名',cond:'赛季总榜第一',ok:false}
+  {id:'first',name:'首杀之刃',icon:'⚔️',tier:'bronze',desc:'完成第一次击杀',cond:'击杀1只',target:1,progressKey:'season',ok:true,date:'2026-06-01'},
+  {id:'ten',name:'十步一杀',icon:'🎯',tier:'silver',desc:'累计击杀10只',cond:'累计10只',target:10,progressKey:'season',ok:true,date:'2026-06-02'},
+  {id:'hundred',name:'百蚊斩',icon:'🗡️',tier:'gold',desc:'累计击杀100只',cond:'累计100只',target:100,progressKey:'season',ok:true,date:'2026-06-04'},
+  {id:'thousand',name:'千军破',icon:'🔥',tier:'legend',desc:'累计击杀1000只',cond:'累计1000只',target:1000,progressKey:'season',ok:false},
+  {id:'combo',name:'连击王者',icon:'⚡',tier:'silver',desc:'单局游戏击杀50只',cond:'单局50只',target:50,progressKey:'gameHighScore',ok:true,date:'2026-06-05'},
+  {id:'night',name:'暗夜猎手',icon:'🌙',tier:'gold',desc:'夜间击杀累计100只',cond:'22:00-6:00累计100',target:100,progressKey:'nightKills',ok:false},
+  {id:'weekly',name:'周榜之星',icon:'🏆',tier:'bronze',desc:'周击杀数进入排行榜前三',cond:'周榜TOP3',target:1,progressKey:'weeklyTopThree',ok:true,date:'2026-06-07'},
+  {id:'season_champ',name:'赛季冠军',icon:'👑',tier:'legend',desc:'赛季排行榜第一名',cond:'赛季总榜第一',target:1,progressKey:'seasonChamp',ok:false}
 ];
 
 const LB=[
@@ -462,6 +496,11 @@ function save(){
   localStorage.setItem('mk_glasses_bound',S.glassesBound?'1':'0');
   localStorage.setItem('mk_glasses_bat',String(S.glassesBattery));
   localStorage.setItem('mk_glasses_sig',S.glassesSignal);
+  // Save badge stats
+  localStorage.setItem('mk_night_kills',String(S.nightKills));
+  localStorage.setItem('mk_weekly_top3',S.weeklyTopThree?'1':'0');
+  localStorage.setItem('mk_season_champ',S.seasonChamp?'1':'0');
+  localStorage.setItem('mk_unlocked_badges',JSON.stringify(S.unlockedBadges));
 }
 
 // ── Watch Functions ──
@@ -743,6 +782,7 @@ function submitCheckin(){
   CHECKIN_RECORDS.push(record);
   saveCheckinRecords();
   S.today+=kills;S.week+=kills;S.month+=kills;S.season+=kills;
+  setTimeout(function(){checkBadges();},200);
   S.gameHighScore+=points;save();
   input.value='';uploadingImage=null;
   var area=document.getElementById('checkinUploadArea');
@@ -1009,6 +1049,7 @@ function startKillLoop(){
     S.today++;S.week++;S.month++;S.season++;save();
     const el=document.getElementById('bigNum');
     if(el){el.textContent=S.today;el.classList.remove('pop');void el.offsetWidth;el.classList.add('pop')}
+    if(S.today%10===0)checkBadges(); // check badges every 10 kills
     showKillNotify();
   },1200);
 }
@@ -1308,32 +1349,146 @@ function showFeaturePreview(featureName,description,releaseDate){
 }
 
 // ── Badges ──
+function getBadgeProgress(b){
+  // Returns {cur, pct} for the badge's progress
+  const tier=b.progressKey;
+  let cur=0;
+  if(tier==='season') cur=S.season;
+  else if(tier==='gameHighScore') cur=S.gameHighScore;
+  else if(tier==='nightKills') cur=S.nightKills;
+  else if(tier==='weeklyTopThree') cur=S.weeklyTopThree;
+  else if(tier==='seasonChamp') cur=S.seasonChamp;
+  const pct=b.ok?100:Math.min(100,Math.round(cur/b.target*100));
+  return {cur:Math.min(cur,b.target),pct};
+}
+
 function renderBadges(){
   const el=document.getElementById('page-badges');if(!el)return;
   const tc={bronze:'tag-bronze',silver:'tag-silver',gold:'tag-gold',legend:'tag-legend'};
-  const tn={bronze:'铜',silver:'银',gold:'金',legend:'传说'};
-  el.innerHTML=`<div class="badge-grid">
-    ${BADGES.map(b=>`<div class="badge-card ${b.ok?'':'locked'}" onclick="${b.ok?`showBadge('${b.id}')`:''}">
-      <div class="badge-icon">${b.icon}</div>
-      <div class="badge-name">${b.name}</div>
-      <span class="tag ${tc[b.tier]}">${tn[b.tier]}</span>
-    </div>`).join('')}
-  </div>`;
+  const tn={bronze:'🥉铜',silver:'🥈银',gold:'🥇金',legend:'👑传说'};
+  const unlocked=S.unlockedBadges||[];
+  const unlockedCount=BADGES.filter(b=>b.ok||unlocked.includes(b.id)).length;
+  const allUnlocked=unlockedCount>=BADGES.length;
+
+  let allStarHtml='';
+  if(allUnlocked){
+    allStarHtml='<div class="badge-all-star"><div class="as-icon">✨</div><div class="as-title">勋章大师</div><div class="as-sub">恭喜！你已集齐全部8枚勋章</div></div>';
+  }
+
+  const countBarHtml='<div class="badge-count-bar"><span class="bcb-left">🎖️ 已解锁勋章</span><span class="bcb-right">'+unlockedCount+' / '+BADGES.length+'</span></div>';
+
+  const badgeCards=BADGES.map(function(b){
+    const isUnlocked=b.ok||unlocked.includes(b.id);
+    const prog=getBadgeProgress(b);
+    const showProgress=!isUnlocked;
+    const progressHtml=showProgress?'<div class="badge-progress-label">'+prog.cur+' / '+b.target+'</div><div class="badge-progress-wrap"><div class="badge-progress-bar tier-'+b.tier+'" style="width:'+prog.pct+'%"></div></div>':'';
+    const condHtml=!isUnlocked?'<div class="badge-cond">'+b.cond+'</div>':'';
+    const dateHtml=isUnlocked&&b.date?'<div style="font-size:9px;color:var(--success);margin-top:2px">'+b.date+'</div>':'';
+    return '<div class="badge-card '+(isUnlocked?'':'locked')+'" data-badge-id="'+b.id+'" data-unlocked="'+(isUnlocked?'1':'0')+'">'+
+      '<div class="badge-icon">'+b.icon+'</div>'+
+      '<div class="badge-name">'+b.name+'</div>'+
+      '<span class="tag '+tc[b.tier]+'">'+tn[b.tier]+'</span>'+
+      dateHtml+progressHtml+condHtml+
+      '</div>';
+  }).join('');
+
+  el.innerHTML=allStarHtml+countBarHtml+'<div class="badge-grid">'+badgeCards+'</div>';
+
+  // Event delegation for badge click (avoid inline onclick)
+  el.querySelectorAll('.badge-card').forEach(function(card){
+    card.addEventListener('click',function(){
+      const id=card.getAttribute('data-badge-id');
+      const isUnlocked=card.getAttribute('data-unlocked')==='1';
+      showBadge(id,isUnlocked);
+    });
+  });
 }
 
-function showBadge(id){
+function showBadge(id,isUnlocked){
   const b=BADGES.find(x=>x.id===id);if(!b)return;
+  const tc={bronze:'tag-bronze',silver:'tag-silver',gold:'tag-gold',legend:'tag-legend'};
+  const tn={bronze:'铜牌',silver:'银牌',gold:'金牌',legend:'传说'};
   const m=document.getElementById('modal'),box=document.getElementById('modalBox');
   if(!m||!box)return;
-  box.innerHTML=`<div class="modal-icon">${b.icon}</div>
-    <h3>${b.name}</h3>
-    <p>${b.desc}</p>
-    <p style="font-size:12px;color:var(--text-muted)">条件：${b.cond}</p>
-    <p style="font-size:12px;color:var(--success)">获得于 ${b.date||'--'}</p>
-    <button class="modal-close" onclick="closeModal()">知道了</button>`;
+  const prog=getBadgeProgress(b);
+  const unlocked=isUnlocked===undefined?(b.ok||(S.unlockedBadges||[]).includes(b.id)):isUnlocked;
+  const progressSection=!unlocked?'<div style="margin:10px 0 4px;font-size:12px;color:var(--text-muted)">达成进度：'+prog.cur+' / '+b.target+'</div><div class="badge-progress-wrap" style="height:6px;margin:4px 0 12px"><div class="badge-progress-bar tier-'+b.tier+'" style="width:'+prog.pct+'%"></div></div>':'';
+  const statusSection=unlocked?'<p style="font-size:12px;color:var(--success);margin-bottom:12px">✅ 解锁时间：'+(b.date||'已获得')+'</p>':'<p style="font-size:12px;color:var(--text-muted);margin-bottom:4px">解锁条件：'+b.cond+'</p>';
+  box.innerHTML='<div class="modal-icon">'+b.icon+'</div>'+
+    '<h3 style="margin-bottom:6px">'+b.name+'</h3>'+
+    '<span class="badge-unlock-tier '+tc[b.tier]+'">'+tn[b.tier]+'</span>'+
+    '<p style="font-size:13px;color:var(--text-secondary);margin:10px 0 8px">'+b.desc+'</p>'+
+    statusSection+progressSection+
+    '<button class="modal-close" onclick="closeModal()" style="margin-top:4px">知道了</button>';
   m.classList.add('show');
 }
 function closeModal(){const m=document.getElementById('modal');if(m)m.classList.remove('show')}
+
+function showBadgeUnlockPopup(b,onClose){
+  const tc={bronze:'tag-bronze',silver:'tag-silver',gold:'tag-gold',legend:'tag-legend'};
+  const tn={bronze:'🥉 铜牌',silver:'🥈 银牌',gold:'🥇 金牌',legend:'👑 传说'};
+  // Remove existing popup if any
+  const existing=document.getElementById('badgeUnlockOverlay');
+  if(existing)existing.remove();
+  const overlay=document.createElement('div');
+  overlay.id='badgeUnlockOverlay';
+  overlay.className='badge-unlock-overlay';
+  const popup=document.createElement('div');
+  popup.className='badge-unlock-popup';
+  popup.innerHTML='<span class="badge-unlock-icon">'+b.icon+'</span>'+
+    '<div class="badge-unlock-title">🎉 勋章解锁！</div>'+
+    '<div class="badge-unlock-name">'+b.name+'</div>'+
+    '<span class="badge-unlock-tier '+tc[b.tier]+'">'+tn[b.tier]+'</span>'+
+    '<p style="font-size:12px;color:var(--text-secondary);margin:10px 0 14px">'+b.desc+'</p>'+
+    '<button class="badge-unlock-btn" id="badgeUnlockOk">太棒了 ✓</button>';
+  overlay.appendChild(popup);
+  document.body.appendChild(overlay);
+  document.getElementById('badgeUnlockOk').addEventListener('click',function(){
+    overlay.remove();
+    if(onClose)onClose();
+  });
+  // Auto close after 5s
+  setTimeout(function(){if(overlay.parentNode){overlay.remove();if(onClose)onClose();}},5000);
+}
+
+function checkBadges(onDone){
+  // Check each badge condition, unlock if newly met
+  const unlocked=S.unlockedBadges||[];
+  const queue=[];
+  const now=new Date();
+  const nowStr=now.getFullYear()+'-'+(String(now.getMonth()+1).padStart(2,'0'))+'-'+(String(now.getDate()).padStart(2,'0'));
+
+  BADGES.forEach(function(b){
+    if(b.ok||unlocked.includes(b.id))return; // already unlocked
+    let met=false;
+    if(b.progressKey==='season' && S.season>=b.target) met=true;
+    else if(b.progressKey==='gameHighScore' && S.gameHighScore>=b.target) met=true;
+    else if(b.progressKey==='nightKills' && S.nightKills>=b.target) met=true;
+    else if(b.progressKey==='weeklyTopThree' && S.weeklyTopThree>=b.target) met=true;
+    else if(b.progressKey==='seasonChamp' && S.seasonChamp>=b.target) met=true;
+    if(met){
+      unlocked.push(b.id);
+      b.ok=true;
+      b.date=nowStr;
+      queue.push(b);
+    }
+  });
+
+  if(queue.length>0){
+    S.unlockedBadges=unlocked;
+    save();
+    renderBadges();
+    // Show popups sequentially
+    let i=0;
+    function showNext(){
+      if(i>=queue.length){if(onDone)onDone();return;}
+      showBadgeUnlockPopup(queue[i],function(){i++;showNext();});
+    }
+    showNext();
+  } else {
+    if(onDone)onDone();
+  }
+}
 
 // ── Profile ──
 function renderMe(){
@@ -1347,7 +1502,7 @@ function renderMe(){
     <div class="profile-stats">
       <div class="profile-stat"><div class="pval">${S.season}</div><div class="plbl">总击杀</div></div>
       <div class="profile-stat"><div class="pval">#23</div><div class="plbl">最佳排名</div></div>
-      <div class="profile-stat"><div class="pval">5</div><div class="plbl">勋章</div></div>
+      <div class="profile-stat"><div class="pval">${(S.unlockedBadges||[]).length}/${BADGES.length}</div><div class="plbl">勋章</div></div>
       <div class="profile-stat"><div class="pval">45</div><div class="plbl">活跃天</div></div>
     </div>
     <div class="section-title">最近战绩</div>
@@ -1501,6 +1656,9 @@ function endGame(){
   if(board)board.classList.remove('playing');
   const isNewHigh=G.score>S.gameHighScore;
   if(isNewHigh){S.gameHighScore=G.score;localStorage.setItem('mk_ghs',G.score);}
+  // 夜间击杀统计（22:00-06:00）
+  const h=new Date().getHours();
+  if(h>=22||h<6){S.nightKills+=G.score;save();}
   // Watch联动：停止心率模拟，发送通知，显示战绩简报
   if(S.watchBound){
     stopHeartRate();
@@ -1511,7 +1669,8 @@ function endGame(){
     }
     showGameBriefing(G.score,S.today,S.season);
   }
-  renderGame();
+  // 检测勋章解锁
+  checkBadges(function(){renderGame();});
 }
 function updateGameHUD(){
   const tel=document.getElementById('gameTimeLeft');
