@@ -431,11 +431,317 @@ body{font-family:system-ui,-apple-system,'Helvetica Neue',sans-serif;background:
 .pk-score{font-size:12px;color:var(--brand);font-weight:700;min-width:28px;text-align:right}
 .pk-score-opp{font-size:12px;color:var(--danger);font-weight:700;min-width:28px}
 .pk-vs{font-size:11px;color:var(--text-muted);font-weight:700;margin:0 2px}
+
+/* Language Switcher */
+.lang-switch{position:absolute;top:12px;right:12px;display:flex;gap:2px;background:var(--surface);border-radius:var(--radius-full);padding:2px;z-index:200;border:1px solid var(--border)}
+.lang-btn{padding:4px 10px;border:none;background:none;color:var(--text-muted);font-size:11px;font-weight:700;border-radius:var(--radius-full);cursor:pointer;transition:all .2s;min-height:28px}
+.lang-btn.active{background:var(--brand);color:#000}
+.lang-btn:active{opacity:.8}
 </style>
 </head>
 <body>
 <div id="app" class="app"></div>
 <script>
+
+// ── i18n System ──
+const I18N={
+  'zh-CN':{
+    // Nav
+    'nav.home':'首页','nav.lb':'排行','nav.dev':'设备','nav.badges':'成就','nav.me':'我的','nav.game':'游戏','nav.checkin':'打卡',
+    // Login
+    'login.title':'八万·蚊消令','login.sub':'硬核灭蚊，全球竞技','login.phone':'手机号','login.sms':'验证码',
+    'login.phone_ph':'请输入手机号','login.sms_ph':'请输入验证码','login.btn':'登 录','login.wechat':'微信登录',
+    'login.err_empty':'请输入手机号和验证码','login.err_sms':'验证码错误（Mock验证码：123456）',
+    // Home
+    'home.bt_active':'蓝牙已连接 · 出击中','home.bt_idle':'蓝牙已连接 · 待命中',
+    'home.today_kills':'今日灭蚊','home.week':'本周','home.month':'本月','home.season':'赛季',
+    'home.start':'⚡ 开始出击','home.stop':'⏹ 结束出击',
+    'home.watch_linked':'⌚ 手表联动已启用 · 出击模式可从手表远程控制',
+    'home.session_start':'⚡ 出击模式启动','home.session_start_desc':'首页出击模式已开始运行',
+    'home.session_stop':'⏹ 出击模式停止','home.session_stop_desc':'首页出击模式已停止',
+    // Leaderboard
+    'lb.season':'2026夏季赛','lb.your_rank':'你的排名',
+    // Devices
+    'dev.scanning':'正在扫描附近设备...','dev.add':'＋ 添加新设备',
+    'dev.watch_name':'智能手表','dev.watch_model':'Mock Watch Pro · 已连接',
+    'dev.racket_name':'八万Pro X1','dev.racket_connected':'已连接',
+    'dev.online':'● 在线','dev.battery':'电量','dev.signal':'信号','dev.heart_rate':'心率(BPM)',
+    'dev.bound':'已绑定','dev.unbind':'解绑手表','dev.remote_start':'远程启动','dev.remote_stop':'远程停止',
+    'dev.buy_watch':'🛒 选购手表','dev.unbind_device':'解绑设备','dev.buy_racket':'🛒 立即选购',
+    'dev.ring_name':'智能指环 S1','dev.ring_model':'八万Ring S1 · 已连接',
+    'dev.unbind_ring':'解绑指环','dev.buy_ring':'🛒 选购指环',
+    'dev.glasses_name':'智能AR眼镜','dev.glasses_model':'八万AR Glasses · 已连接',
+    'dev.unbind_glasses':'解绑眼镜','dev.buy_glasses':'🛒 选购眼镜',
+    'dev.bind_watch':'绑定手表','dev.bind_ring':'绑定指环','dev.bind_glasses':'绑定眼镜','dev.bind':'绑定',
+    'dev.watch_bind_ok':'⌚ 智能手表绑定成功！\n\n🎉 专属权益已激活：\n- 所有道具冷却时间减少30%\n- 游戏心率实时同步\n- 战绩简报推送',
+    'dev.ring_bind_ok':'💍 智能指环绑定成功！\n\n🎉 专属权益已激活：\n- 解锁手势操控模式\n- 挥手即杀，体验未来交互\n\n（手势操控功能正在开发中）',
+    'dev.glasses_bind_ok':'🥽 智能AR眼镜绑定成功！\n\n🎉 专属权益已激活：\n- 解锁AR实景灭蚊模式\n- 虚拟蚊子叠加现实场景\n\n（AR实景功能正在开发中）',
+    'dev.watch_unbind_confirm':'确定解绑智能手表？\n\n解绑后将失去道具冷却减免等专属权益。',
+    'dev.ring_unbind_confirm':'确定解绑智能指环？\n\n解绑后将失去手势操控等专属权益。',
+    'dev.glasses_unbind_confirm':'确定解绑智能AR眼镜？\n\n解绑后将失去AR实景灭蚊等专属权益。',
+    'dev.watch_unbound':'⌚ 智能手表已解绑','dev.ring_unbound':'💍 智能指环已解绑','dev.glasses_unbound':'🥽 智能AR眼镜已解绑',
+    'dev.edit_nick':'✏️','dev.watch_nick_set':'设置手表昵称：','dev.watch_nick_updated':'昵称已更新：',
+    'dev.unbound_alert':'设备已解绑',
+    // Badges
+    'badge.master_title':'勋章大师','badge.master_sub':'恭喜！你已集齐全部8枚勋章',
+    'badge.unlocked':'🎖️ 已解锁勋章','badge.unlock_excl':'🎉 勋章解锁！','badge.unlock_btn':'太棒了 ✓',
+    'badge.tier_bronze':'🥉 铜牌','badge.tier_silver':'🥈 银牌','badge.tier_gold':'🥇 金牌','badge.tier_legend':'👑 传说',
+    'badge.tier_bronze_short':'铜牌','badge.tier_silver_short':'银牌','badge.tier_gold_short':'金牌','badge.tier_legend_short':'传说',
+    'badge.unlocked_time':'解锁时间：','badge.unlock_cond':'解锁条件：','badge.progress':'达成进度：',
+    // Profile
+    'me.total_kills':'总击杀','me.best_rank':'最佳排名','me.badges':'勋章','me.pk_winrate':'PK胜率','me.pk_total':'PK场次',
+    'me.recent':'最近战绩','me.pk_records':'—— PK 战绩 ——','me.no_pk':'暂无PK战绩',
+    'me.shop':'🛒 设备商城','me.settings':'⚙️ 设置','me.logout':'退出登录','me.back':'← 返回个人中心',
+    'me.settings_alert':'设置页面',
+    'me.avatar':'灭','me.name':'灭蚊战士','me.level':'◉ LV.12',
+    // Game
+    'game.time_left':'⏱ 剩余秒数','game.kills':'🦟 实时击杀','game.kills_idle':'击杀数','game.high_score':'🏆 最高记录',
+    'game.start':'⚡ 开始游戏','game.again':'🔄 再来一局','game.single':'🎮 单人模式','game.pk':'🆚 好友PK',
+    'game.go_text1':'10秒倒计时，点击蚊子即可消灭','game.go_text2':'倒计时越少，蚊子越多！',
+    'game.legend':'🏆 传奇猎手！','game.expert':'🔥 灭蚊高手！','game.good':'⚡ 身手不错！','game.keep_going':'继续加油！',
+    'game.killed':'你消灭了','game.mosquitoes':'只蚊子！','game.speed_board':'🏆 极速榜','game.tip':'💡 提示：蚊子会在2秒后自动飞走，手速要快！',
+    'game.you':'你','game.opponent':'对手','game.play_again':'🔄 再来一局',
+    'game.win':'胜利！','game.lose':'失败...','game.draw':'平局！',
+    'game.win_comment':'你把蚊子消灭得干干净净，对手只能望蚊兴叹！',
+    'game.lose_comment':'蚊子选了对手那边，下次加油！',
+    'game.draw_comment':'旗鼓相当！蚊子都不知道该往哪边飞！',
+    'game.watch_start':'🎮 游戏开始','game.watch_start_desc':'极速灭蚊模式已启动！',
+    'game.watch_end':'🎮 游戏结束','game.watch_end_desc':'本次击杀: ',
+    'game.watch_new_record':'🏆 新纪录！','game.watch_new_record_desc':'最高分刷新: ',
+    'game.gesture_mode':'手势操控模式','game.gesture_hint':'智能指环已绑定 · 功能开发中',
+    'game.ar_mode':'AR实景模式','game.ar_hint':'智能AR眼镜已绑定 · 功能开发中',
+    // Checkin
+    'ci.title':'实景打卡','ci.sub':'记录现实灭蚊战绩，赢取游戏积分',
+    'ci.kills_label':'🦟 本次灭蚊数量','ci.kills_ph':'请输入数量','ci.kills_hint':'填写现实中使用电蚊拍消灭的蚊子数量',
+    'ci.upload_label':'📷 上传现场照片（可选）','ci.upload_text':'点击上传照片','ci.upload_hint':'支持 JPG/PNG，最大10MB',
+    'ci.submit':'📸 提交打卡','ci.award_label':'获得积分（可用于兑换道具）',
+    'ci.no_records':'暂无打卡记录','ci.no_records_sub':'完成首次实景打卡吧！',
+    'ci.records_title':'📋 打卡记录','ci.detail_title':'打卡详情',
+    'ci.detail_kills':'灭蚊数量','ci.detail_points':'获得积分','ci.detail_time':'打卡时间','ci.close':'关闭',
+    'ci.err_kills':'请输入有效的灭蚊数量','ci.err_max':'单次打卡最多记录1000只',
+    'ci.err_image':'图片不能超过10MB','ci.err_failed':'图片处理失败','ci.compressing':'压缩中...',
+    'ci.success_notif_title':'📸 实景打卡成功','ci.only':'只','ci.points':'积分',
+    // Shop
+    'shop.title':'八万设备商城','shop.sub':'正品保障 · 7天无理由退换',
+    'shop.single':'🛒 单品','shop.bundle':'📦 组合套餐','shop.buy_now':'🛒 立即购买','shop.not_needed':'暂不需要',
+    'shop.recommand':'🛒 同款设备推荐','shop.buy':'购买','shop.save':'省',
+    'shop.link_err':'商品链接待配置，请联系管理员',
+    // Watch notifications
+    'watch.notif_title':'⌚ 手表战绩简报','watch.briefing_kills':'本次击杀','watch.briefing_today':'今日累计',
+    'watch.briefing_season':'赛季累计','watch.briefing_rank':'赛季排名','watch.briefing_efficiency':'击杀效率',
+    'watch.briefing_close':'知道了','watch.not_bound':'未绑定智能手表！',
+    'watch.active_running':'⚡ 出击模式已在运行中','watch.active_idle':'⚡ 出击模式未在运行',
+    'watch.remote_start_notif':'⚡ 出击模式已启动','watch.remote_stop_notif':'⏹ 出击模式已停止',
+    'watch.remote_success':'手表远程触发成功',
+    'watch.badge_notif_title':'🎖️ 勋章解锁！','watch.badge_notif_body':'恭喜获得【',
+    // Feature preview
+    'feature.desc':'功能描述','feature.progress':'📅 开发进度','feature.release':'预计发布时间：',
+    'feature.version':'当前版本：V1.0 基础联动可用\nV1.1 将支持手势识别\nV1.2 将支持完整AR实景',
+    'feature.i_know':'我知道了',
+    // Misc
+    'misc.kills_unit':'只','misc.vs':'vs','misc.pk_battle':'PK对战','misc.win':'🏆胜利','misc.lose':'😢失败','misc.draw':'🤝平局',
+    'misc.points':'分',
+  },
+  'zh-TW':{
+    // Nav
+    'nav.home':'首頁','nav.lb':'排行','nav.dev':'設備','nav.badges':'成就','nav.me':'我的','nav.game':'遊戲','nav.checkin':'打卡',
+    // Login
+    'login.title':'八萬·蚊消令','login.sub':'硬核滅蚊，全球競技','login.phone':'手機號','login.sms':'驗證碼',
+    'login.phone_ph':'請輸入手機號','login.sms_ph':'請輸入驗證碼','login.btn':'登 入','login.wechat':'微信登入',
+    'login.err_empty':'請輸入手機號和驗證碼','login.err_sms':'驗證碼錯誤（Mock驗證碼：123456）',
+    // Home
+    'home.bt_active':'藍牙已連接 · 出擊中','home.bt_idle':'藍牙已連接 · 待命中',
+    'home.today_kills':'今日滅蚊','home.week':'本週','home.month':'本月','home.season':'賽季',
+    'home.start':'⚡ 開始出擊','home.stop':'⏹ 結束出擊',
+    'home.watch_linked':'⌚ 手錶聯動已啟用 · 出擊模式可從手錶遠端控制',
+    'home.session_start':'⚡ 出擊模式啟動','home.session_start_desc':'首頁出擊模式已開始運行',
+    'home.session_stop':'⏹ 出擊模式停止','home.session_stop_desc':'首頁出擊模式已停止',
+    // Leaderboard
+    'lb.season':'2026夏季賽','lb.your_rank':'你的排名',
+    // Devices
+    'dev.scanning':'正在掃描附近設備...','dev.add':'＋ 添加新設備',
+    'dev.watch_name':'智慧手錶','dev.watch_model':'Mock Watch Pro · 已連接',
+    'dev.racket_name':'八萬Pro X1','dev.racket_connected':'已連接',
+    'dev.online':'● 在線','dev.battery':'電量','dev.signal':'信號','dev.heart_rate':'心率(BPM)',
+    'dev.bound':'已綁定','dev.unbind':'解綁手錶','dev.remote_start':'遠端啟動','dev.remote_stop':'遠端停止',
+    'dev.buy_watch':'🛒 選購手錶','dev.unbind_device':'解綁設備','dev.buy_racket':'🛒 立即選購',
+    'dev.ring_name':'智慧指環 S1','dev.ring_model':'八萬Ring S1 · 已連接',
+    'dev.unbind_ring':'解綁指環','dev.buy_ring':'🛒 選購指環',
+    'dev.glasses_name':'智慧AR眼鏡','dev.glasses_model':'八萬AR Glasses · 已連接',
+    'dev.unbind_glasses':'解綁眼鏡','dev.buy_glasses':'🛒 選購眼鏡',
+    'dev.bind_watch':'綁定手錶','dev.bind_ring':'綁定指環','dev.bind_glasses':'綁定眼鏡','dev.bind':'綁定',
+    'dev.watch_bind_ok':'⌚ 智慧手錶綁定成功！\n\n🎉 專屬權益已啟用：\n- 所有道具冷卻時間減少30%\n- 遊戲心率即時同步\n- 戰績簡報推送',
+    'dev.ring_bind_ok':'💍 智慧指環綁定成功！\n\n🎉 專屬權益已啟用：\n- 解鎖手勢操控模式\n- 揮手即殺，體驗未來交互\n\n（手勢操控功能正在開發中）',
+    'dev.glasses_bind_ok':'🥽 智慧AR眼鏡綁定成功！\n\n🎉 專屬權益已啟用：\n- 解鎖AR實景滅蚊模式\n- 虛擬蚊子疊加現實場景\n\n（AR實景功能正在開發中）',
+    'dev.watch_unbind_confirm':'確定解綁智慧手錶？\n\n解綁後將失去道具冷卻減免等專屬權益。',
+    'dev.ring_unbind_confirm':'確定解綁智慧指環？\n\n解綁後將失去手勢操控等專屬權益。',
+    'dev.glasses_unbind_confirm':'確定解綁智慧AR眼鏡？\n\n解綁後將失去AR實景滅蚊等專屬權益。',
+    'dev.watch_unbound':'⌚ 智慧手錶已解綁','dev.ring_unbound':'💍 智慧指環已解綁','dev.glasses_unbound':'🥽 智慧AR眼鏡已解綁',
+    'dev.edit_nick':'✏️','dev.watch_nick_set':'設置手錶暱稱：','dev.watch_nick_updated':'暱稱已更新：',
+    'dev.unbound_alert':'設備已解綁',
+    // Badges
+    'badge.master_title':'勳章大師','badge.master_sub':'恭喜！你已集齊全部8枚勳章',
+    'badge.unlocked':'🎖️ 已解鎖勳章','badge.unlock_excl':'🎉 勳章解鎖！','badge.unlock_btn':'太棒了 ✓',
+    'badge.tier_bronze':'🥉 銅牌','badge.tier_silver':'🥈 銀牌','badge.tier_gold':'🥇 金牌','badge.tier_legend':'👑 傳說',
+    'badge.tier_bronze_short':'銅牌','badge.tier_silver_short':'銀牌','badge.tier_gold_short':'金牌','badge.tier_legend_short':'傳說',
+    'badge.unlocked_time':'解鎖時間：','badge.unlock_cond':'解鎖條件：','badge.progress':'達成進度：',
+    // Profile
+    'me.total_kills':'總擊殺','me.best_rank':'最佳排名','me.badges':'勳章','me.pk_winrate':'PK勝率','me.pk_total':'PK場次',
+    'me.recent':'最近戰績','me.pk_records':'—— PK 戰績 ——','me.no_pk':'暫無PK戰績',
+    'me.shop':'🛒 設備商城','me.settings':'⚙️ 設置','me.logout':'退出登入','me.back':'← 返回個人中心',
+    'me.settings_alert':'設置頁面',
+    'me.avatar':'滅','me.name':'滅蚊戰士','me.level':'◉ LV.12',
+    // Game
+    'game.time_left':'⏱ 剩餘秒數','game.kills':'🦟 即時擊殺','game.kills_idle':'擊殺數','game.high_score':'🏆 最高記錄',
+    'game.start':'⚡ 開始遊戲','game.again':'🔄 再來一局','game.single':'🎮 單人模式','game.pk':'🆚 好友PK',
+    'game.go_text1':'10秒倒計時，點擊蚊子即可消滅','game.go_text2':'倒計時越少，蚊子越多！',
+    'game.legend':'🏆 傳奇獵手！','game.expert':'🔥 滅蚊高手！','game.good':'⚡ 身手不錯！','game.keep_going':'繼續加油！',
+    'game.killed':'你消滅了','game.mosquitoes':'隻蚊子！','game.speed_board':'🏆 極速榜','game.tip':'💡 提示：蚊子會在2秒後自動飛走，手速要快！',
+    'game.you':'你','game.opponent':'對手','game.play_again':'🔄 再來一局',
+    'game.win':'勝利！','game.lose':'失敗...','game.draw':'平局！',
+    'game.win_comment':'你把蚊子消滅得乾乾淨淨，對手只能望蚊興嘆！',
+    'game.lose_comment':'蚊子選了對手那邊，下次加油！',
+    'game.draw_comment':'旗鼓相當！蚊子都不知道該往哪邊飛！',
+    'game.watch_start':'🎮 遊戲開始','game.watch_start_desc':'極速滅蚊模式已啟動！',
+    'game.watch_end':'🎮 遊戲結束','game.watch_end_desc':'本次擊殺: ',
+    'game.watch_new_record':'🏆 新紀錄！','game.watch_new_record_desc':'最高分刷新: ',
+    'game.gesture_mode':'手勢操控模式','game.gesture_hint':'智慧指環已綁定 · 功能開發中',
+    'game.ar_mode':'AR實景模式','game.ar_hint':'智慧AR眼鏡已綁定 · 功能開發中',
+    // Checkin
+    'ci.title':'實景打卡','ci.sub':'記錄現實滅蚊戰績，贏取遊戲積分',
+    'ci.kills_label':'🦟 本次滅蚊數量','ci.kills_ph':'請輸入數量','ci.kills_hint':'填寫現實中使用電蚊拍消滅的蚊子數量',
+    'ci.upload_label':'📷 上傳現場照片（可選）','ci.upload_text':'點擊上傳照片','ci.upload_hint':'支持 JPG/PNG，最大10MB',
+    'ci.submit':'📸 提交打卡','ci.award_label':'獲得積分（可用於兌換道具）',
+    'ci.no_records':'暫無打卡記錄','ci.no_records_sub':'完成首次實景打卡吧！',
+    'ci.records_title':'📋 打卡記錄','ci.detail_title':'打卡詳情',
+    'ci.detail_kills':'滅蚊數量','ci.detail_points':'獲得積分','ci.detail_time':'打卡時間','ci.close':'關閉',
+    'ci.err_kills':'請輸入有效的滅蚊數量','ci.err_max':'單次打卡最多記錄1000隻',
+    'ci.err_image':'圖片不能超過10MB','ci.err_failed':'圖片處理失敗','ci.compressing':'壓縮中...',
+    'ci.success_notif_title':'📸 實景打卡成功','ci.only':'隻','ci.points':'積分',
+    // Shop
+    'shop.title':'八萬設備商城','shop.sub':'正品保障 · 7天無理由退換',
+    'shop.single':'🛒 單品','shop.bundle':'📦 組合套餐','shop.buy_now':'🛒 立即購買','shop.not_needed':'暫不需要',
+    'shop.recommand':'🛒 同款設備推薦','shop.buy':'購買','shop.save':'省',
+    'shop.link_err':'商品連結待配置，請聯繫管理員',
+    // Watch notifications
+    'watch.notif_title':'⌚ 手錶戰績簡報','watch.briefing_kills':'本次擊殺','watch.briefing_today':'今日累計',
+    'watch.briefing_season':'賽季累計','watch.briefing_rank':'賽季排名','watch.briefing_efficiency':'擊殺效率',
+    'watch.briefing_close':'知道了','watch.not_bound':'未綁定智慧手錶！',
+    'watch.active_running':'⚡ 出擊模式已在運行中','watch.active_idle':'⚡ 出擊模式未在運行',
+    'watch.remote_start_notif':'⚡ 出擊模式已啟動','watch.remote_stop_notif':'⏹ 出擊模式已停止',
+    'watch.remote_success':'手錶遠端觸發成功',
+    'watch.badge_notif_title':'🎖️ 勳章解鎖！','watch.badge_notif_body':'恭喜獲得【',
+    // Feature preview
+    'feature.desc':'功能描述','feature.progress':'📅 開發進度','feature.release':'預計發布時間：',
+    'feature.version':'當前版本：V1.0 基礎聯動可用\nV1.1 將支持手勢識別\nV1.2 將支持完整AR實景',
+    'feature.i_know':'我知道了',
+    // Misc
+    'misc.kills_unit':'隻','misc.vs':'vs','misc.pk_battle':'PK對戰','misc.win':'🏆勝利','misc.lose':'😢失敗','misc.draw':'🤝平局',
+    'misc.points':'分',
+  },
+  'en':{
+    // Nav
+    'nav.home':'Home','nav.lb':'Ranks','nav.dev':'Devices','nav.badges':'Badges','nav.me':'Profile','nav.game':'Game','nav.checkin':'Check-in',
+    // Login
+    'login.title':'MosquitoKill Pro','login.sub':'Hardcore mosquito hunting, global competition','login.phone':'Phone','login.sms':'Code',
+    'login.phone_ph':'Enter phone number','login.sms_ph':'Enter verification code','login.btn':'LOG IN','login.wechat':'WeChat Login',
+    'login.err_empty':'Please enter phone and code','login.err_sms':'Wrong code (Mock code: 123456)',
+    // Home
+    'home.bt_active':'Bluetooth connected · Active','home.bt_idle':'Bluetooth connected · Standby',
+    'home.today_kills':'Today kills','home.week':'Week','home.month':'Month','home.season':'Season',
+    'home.start':'⚡ Start Hunting','home.stop':'⏹ Stop Hunting',
+    'home.watch_linked':'⌚ Watch linked · Hunt mode can be remotely controlled from watch',
+    'home.session_start':'⚡ Hunt mode started','home.session_start_desc':'Home hunt mode is now running',
+    'home.session_stop':'⏹ Hunt mode stopped','home.session_stop_desc':'Home hunt mode has been stopped',
+    // Leaderboard
+    'lb.season':'2026 Summer Season','lb.your_rank':'Your rank',
+    // Devices
+    'dev.scanning':'Scanning nearby devices...','dev.add':'＋ Add new device',
+    'dev.watch_name':'Smart Watch','dev.watch_model':'Mock Watch Pro · Connected',
+    'dev.racket_name':'Pro X1 Racket','dev.racket_connected':'Connected',
+    'dev.online':'● Online','dev.battery':'Battery','dev.signal':'Signal','dev.heart_rate':'HR (BPM)',
+    'dev.bound':'Bound','dev.unbind':'Unbind Watch','dev.remote_start':'Remote Start','dev.remote_stop':'Remote Stop',
+    'dev.buy_watch':'🛒 Buy Watch','dev.unbind_device':'Unbind Device','dev.buy_racket':'🛒 Buy Now',
+    'dev.ring_name':'Smart Ring S1','dev.ring_model':'Ring S1 · Connected',
+    'dev.unbind_ring':'Unbind Ring','dev.buy_ring':'🛒 Buy Ring',
+    'dev.glasses_name':'Smart AR Glasses','dev.glasses_model':'AR Glasses · Connected',
+    'dev.unbind_glasses':'Unbind Glasses','dev.buy_glasses':'🛒 Buy Glasses',
+    'dev.bind_watch':'Bind Watch','dev.bind_ring':'Bind Ring','dev.bind_glasses':'Bind Glasses','dev.bind':'Bind',
+    'dev.watch_bind_ok':'⌚ Smart Watch bound!\n\n🎉 Exclusive perks activated:\n- Item cooldown reduced 30%\n- Real-time heart rate sync\n- Battle report push',
+    'dev.ring_bind_ok':'💍 Smart Ring bound!\n\n🎉 Exclusive perks activated:\n- Gesture control mode unlocked\n- Wave to kill, experience the future\n\n（Gesture control in development）',
+    'dev.glasses_bind_ok':'🥽 Smart AR Glasses bound!\n\n🎉 Exclusive perks activated:\n- AR real-scene mode unlocked\n- Virtual mosquitoes in reality\n\n（AR scene in development）',
+    'dev.watch_unbind_confirm':'Unbind Smart Watch?\n\nYou will lose cooldown reduction and other perks.',
+    'dev.ring_unbind_confirm':'Unbind Smart Ring?\n\nYou will lose gesture control and other perks.',
+    'dev.glasses_unbind_confirm':'Unbind Smart AR Glasses?\n\nYou will lose AR scene and other perks.',
+    'dev.watch_unbound':'⌚ Smart Watch unbound','dev.ring_unbound':'💍 Smart Ring unbound','dev.glasses_unbound':'🥽 Smart AR Glasses unbound',
+    'dev.edit_nick':'✏️','dev.watch_nick_set':'Set watch nickname:','dev.watch_nick_updated':'Nickname updated: ',
+    'dev.unbound_alert':'Device unbound',
+    // Badges
+    'badge.master_title':'Badge Master','badge.master_sub':'Congratulations! All 8 badges collected',
+    'badge.unlocked':'🎖️ Badges Unlocked','badge.unlock_excl':'🎉 Badge Unlocked!','badge.unlock_btn':'Awesome ✓',
+    'badge.tier_bronze':'🥉 Bronze','badge.tier_silver':'🥈 Silver','badge.tier_gold':'🥇 Gold','badge.tier_legend':'👑 Legend',
+    'badge.tier_bronze_short':'Bronze','badge.tier_silver_short':'Silver','badge.tier_gold_short':'Gold','badge.tier_legend_short':'Legend',
+    'badge.unlocked_time':'Unlocked: ','badge.unlock_cond':'Unlock condition: ','badge.progress':'Progress: ',
+    // Profile
+    'me.total_kills':'Total Kills','me.best_rank':'Best Rank','me.badges':'Badges','me.pk_winrate':'PK Rate','me.pk_total':'PK Matches',
+    'me.recent':'Recent Records','me.pk_records':'—— PK Records ——','me.no_pk':'No PK records',
+    'me.shop':'🛒 Device Shop','me.settings':'⚙️ Settings','me.logout':'Log Out','me.back':'← Back to Profile',
+    'me.settings_alert':'Settings page',
+    'me.avatar':'MK','me.name':'Mosquito Hunter','me.level':'◉ LV.12',
+    // Game
+    'game.time_left':'⏱ Time Left','game.kills':'🦟 Live Kills','game.kills_idle':'Kills','game.high_score':'🏆 Best Score',
+    'game.start':'⚡ Start Game','game.again':'🔄 Play Again','game.single':'🎮 Single Player','game.pk':'🆚 Friend PK',
+    'game.go_text1':'10-second countdown, tap mosquitoes to kill','game.go_text2':'Less time = more mosquitoes!',
+    'game.legend':'🏆 Legendary Hunter!','game.expert':'🔥 Mosquito Expert!','game.good':'⚡ Nice Skills!','game.keep_going':'Keep going!',
+    'game.killed':'You killed','game.mosquitoes':'mosquitoes!','game.speed_board':'🏆 Speed Board','game.tip':'💡 Tip: Mosquitoes fly away after 2s, be fast!',
+    'game.you':'You','game.opponent':'Opponent','game.play_again':'🔄 Play Again',
+    'game.win':'Victory!','game.lose':'Defeat...','game.draw':'Draw!',
+    'game.win_comment':'You wiped out all mosquitoes, opponent could only watch!',
+    'game.lose_comment':'Mosquitoes favored your opponent, try harder next time!',
+    'game.draw_comment':'Evenly matched! Mosquitoes did not know which way to fly!',
+    'game.watch_start':'🎮 Game Started','game.watch_start_desc':'Speed kill mode activated!',
+    'game.watch_end':'🎮 Game Over','game.watch_end_desc':'Kills this round: ',
+    'game.watch_new_record':'🏆 New Record!','game.watch_new_record_desc':'New high score: ',
+    'game.gesture_mode':'Gesture Control','game.gesture_hint':'Ring bound · In development',
+    'game.ar_mode':'AR Scene Mode','game.ar_hint':'Glasses bound · In development',
+    // Checkin
+    'ci.title':'Real-scene Check-in','ci.sub':'Record real kills, earn game points',
+    'ci.kills_label':'🦟 Mosquitoes killed','ci.kills_ph':'Enter count','ci.kills_hint':'Enter mosquitoes killed with your racket',
+    'ci.upload_label':'📷 Upload photo (optional)','ci.upload_text':'Tap to upload','ci.upload_hint':'JPG/PNG, max 10MB',
+    'ci.submit':'📸 Submit Check-in','ci.award_label':'Points earned (redeemable for items)',
+    'ci.no_records':'No check-in records','ci.no_records_sub':'Complete your first check-in!',
+    'ci.records_title':'📋 Check-in Records','ci.detail_title':'Check-in Detail',
+    'ci.detail_kills':'Kills','ci.detail_points':'Points','ci.detail_time':'Time','ci.close':'Close',
+    'ci.err_kills':'Please enter a valid number','ci.err_max':'Max 1000 per check-in',
+    'ci.err_image':'Image must be under 10MB','ci.err_failed':'Image processing failed','ci.compressing':'Compressing...',
+    'ci.success_notif_title':'📸 Check-in Success','ci.only':'kills','ci.points':'points',
+    // Shop
+    'shop.title':'Device Shop','shop.sub':'Authentic guarantee · 7-day return',
+    'shop.single':'🛒 Single','shop.bundle':'📦 Bundles','shop.buy_now':'🛒 Buy Now','shop.not_needed':'Not now',
+    'shop.recommand':'🛒 Recommended Device','shop.buy':'Buy','shop.save':'Save',
+    'shop.link_err':'Product link not configured, contact admin',
+    // Watch notifications
+    'watch.notif_title':'⌚ Watch Battle Report','watch.briefing_kills':'This round','watch.briefing_today':'Today total',
+    'watch.briefing_season':'Season total','watch.briefing_rank':'Season rank','watch.briefing_efficiency':'Kill efficiency',
+    'watch.briefing_close':'Got it','watch.not_bound':'Smart Watch not bound!',
+    'watch.active_running':'⚡ Hunt mode already running','watch.active_idle':'⚡ Hunt mode not running',
+    'watch.remote_start_notif':'⚡ Hunt mode started','watch.remote_stop_notif':'⏹ Hunt mode stopped',
+    'watch.remote_success':'Watch remote triggered',
+    'watch.badge_notif_title':'🎖️ Badge Unlocked!','watch.badge_notif_body':'Congratulations on earning [',
+    // Feature preview
+    'feature.desc':'Description','feature.progress':'📅 Progress','feature.release':'Expected release: ',
+    'feature.version':'Current: V1.0 Basic linkage\nV1.1 Gesture recognition\nV1.2 Full AR scene',
+    'feature.i_know':'Got it',
+    // Misc
+    'misc.kills_unit':'kills','misc.vs':'vs','misc.pk_battle':'PK Match','misc.win':'🏆Win','misc.lose':'😢Lose','misc.draw':'🤝Draw',
+    'misc.points':'pts',
+  }
+};
+
+let currentLang=localStorage.getItem('mk_lang')||'zh-CN';
+function t(key){const lang=I18N[currentLang]||I18N['zh-CN'];return lang[key]||I18N['zh-CN'][key]||key}
+function setLang(lang){currentLang=lang;localStorage.setItem('mk_lang',lang);render()}
+
 // ── State ──
 const S={
   loggedIn:localStorage.getItem('mk_log')==='1',
@@ -593,21 +899,21 @@ function showGameBriefing(score,todayKills,seasonKills){
   // Also show a briefing modal to simulate watch display
   const m=document.getElementById('modal'),box=document.getElementById('modalBox');
   if(!m||!box)return;
-  // 模拟赛季排名（随机生成1-100名）
+  // 模拟'+t('watch.briefing_rank')+'（随机生成1-100名）
   const seasonRank=Math.floor(Math.random()*100)+1;
   box.innerHTML=`<div class="modal-icon">⌚</div>
-    <h3>⌚ 手表战绩简报</h3>
+    <h3>'+t('watch.notif_title')+'</h3>
     <div class="briefing-content">
-      <div class="bc-row"><span class="bc-label">本次击杀</span><span class="bc-value">${score} 只</span></div>
-      <div class="bc-row"><span class="bc-label">今日累计</span><span class="bc-value">${S.today} 只</span></div>
-      <div class="bc-row"><span class="bc-label">赛季累计</span><span class="bc-value">${S.season} 只</span></div>
+      <div class="bc-row"><span class="bc-label">'+t('watch.briefing_kills')+'</span><span class="bc-value">${score} 只</span></div>
+      <div class="bc-row"><span class="bc-label">'+t('watch.briefing_today')+'</span><span class="bc-value">${S.today} 只</span></div>
+      <div class="bc-row"><span class="bc-label">'+t('watch.briefing_season')+'</span><span class="bc-value">${S.season} 只</span></div>
       <div class="bc-row"><span class="bc-label">赛季排名</span><span class="bc-value">#${seasonRank}</span></div>
       <div class="bc-highlight">
         <div class="bch-val">${score>0?Math.round(score/10*100)+'%':'0%'}</div>
-        <div class="bch-lbl">击杀效率</div>
+        <div class="bch-lbl">'+t('watch.briefing_efficiency')+'</div>
       </div>
     </div>
-    <button class="modal-close" onclick="closeModal()">知道了</button>`;
+    <button class="modal-close" onclick="closeModal()">'+t('watch.briefing_close')+'</button>`;
   m.classList.add('show');
 }
 
@@ -635,16 +941,16 @@ function stopWatchSync(){
 
 function simulateWatchRemote(action){
   // Simulate watch remote control
-  if(!S.watchBound){alert('未绑定智能手表！');return}
+  if(!S.watchBound){alert('未绑定'+t('dev.watch_name')+'！');return}
   if(action==='start'){
-    if(S.sessionActive){alert('⚡ 出击模式已在运行中');return}
+    if(S.sessionActive){alert(t('watch.active_running'));return}
     startSession();
-    showWatchNotification('⚡ 出击模式已启动','手表远程触发成功');
+    showWatchNotification(t('watch.remote_start_notif'),t('watch.remote_success'));
     startWatchSync(); // Start status sync
   }else if(action==='stop'){
-    if(!S.sessionActive){alert('⚡ 出击模式未在运行');return}
+    if(!S.sessionActive){alert(t('watch.active_idle'));return}
     endSession();
-    showWatchNotification('⏹ 出击模式已停止','手表远程触发成功');
+    showWatchNotification(t('watch.remote_stop_notif'),t('watch.remote_success'));
     stopWatchSync(); // Stop status sync
   }else if(action==='toggle'){
     // Toggle session
@@ -664,7 +970,7 @@ function simulateWatchRemote(action){
 // ── Shop Products ──
 const SHOP_PRODUCTS={
   racket:{
-    id:'racket',name:'八万Pro X1 智能电蚊拍',icon:'🔋',
+    id:'racket',name:''+t('dev.racket_name')+' 智能电蚊拍',icon:'🔋',
     price:12900,origPrice:16900,
     desc:'60cm加长手柄 · 4000V高压电网 · BLE 5.0智能联动 · 42天超长待机',
     features:['60cm加长手柄，安全防触电','4000V高压电网，一击必杀','BLE 5.0智能联动，数据实时同步','Type-C快充，42天超长待机'],
@@ -740,8 +1046,8 @@ function openShopPopup(productId){
       <span class="gp-val">¥<span class="gp-yen">${formatPrice(p.price)}</span></span>
       <span class="gp-orig">¥${formatPrice(p.origPrice)}</span>
     </div>
-    <button class="gsp-btn" onclick="goBuy('${p.id}')">🛒 立即购买</button>
-    <button class="gsp-close" onclick="closeShopPopup()">暂不需要</button>
+    <button class="gsp-btn" onclick="goBuy('${p.id}')">'+t('shop.buy_now')+'</button>
+    <button class="gsp-close" onclick="closeShopPopup()">'+t('shop.not_needed')+'</button>
   `;
   m.classList.add('show');
 }
@@ -758,14 +1064,14 @@ function goBuy(productId){
   if(p.buyUrl&&p.buyUrl!=''){
     window.open(p.buyUrl,'_blank');
   }else{
-    alert('商品链接待配置，请联系管理员');
+    alert(t('shop.link_err'));
   }
 }
 
 function renderPostGameShop(){
   const p=SHOP_PRODUCTS['racket'];
   return`<div class="postgame-shop">
-    <div class="ps-title">🛒 同款设备推荐</div>
+    <div class="ps-title">'+t('shop.recommand')+'</div>
     <div class="ps-card">
       <div class="ps-icon">${p.icon}</div>
       <div class="ps-info">
@@ -773,7 +1079,7 @@ function renderPostGameShop(){
         <div class="ps-desc" style="font-size:11px;color:var(--text-muted);margin-bottom:4px">${p.desc.substring(0,30)}...</div>
         <div class="ps-price">¥<span class="yen">${formatPrice(p.price)}</span> <span style="font-size:11px;color:var(--text-muted);text-decoration:line-through">¥${formatPrice(p.origPrice)}</span></div>
       </div>
-      <button class="ps-btn" onclick="goBuy('${p.id}')">购买</button>
+      <button class="ps-btn" onclick="goBuy('${p.id}')">'+t('shop.buy')+'</button>
     </div>
   </div>`;
 }
@@ -819,12 +1125,12 @@ var uploadingImage=null;
 function handleImageUpload(e){
   var file=e.target.files[0];
   if(!file)return;
-  if(file.size>10*1024*1024){alert('图片不能超过10MB');return}
+  if(file.size>10*1024*1024){alert(t('ci.err_image'));return}
   var area=document.getElementById('checkinUploadArea');
   var preview=document.getElementById('checkinPreview');
   if(!area||!preview)return;
   area.classList.add('has-image');
-  preview.innerHTML='<div style="padding:20px;color:var(--text-muted)">压缩中...</div>';
+  preview.innerHTML='<div style="padding:20px;color:var(--text-muted)">'+t('ci.compressing')+'</div>';
   compressImage(file,600,0.6).then(function(base64){
     uploadingImage=base64;
     preview.innerHTML='';
@@ -836,15 +1142,15 @@ function handleImageUpload(e){
     btn.className='cp-remove';btn.textContent='✕';
     btn.onclick=function(){uploadingImage=null;area.classList.remove('has-image');preview.innerHTML=''};
     preview.appendChild(btn);
-  }).catch(function(){alert('图片处理失败')});
+  }).catch(function(){alert(t('ci.err_failed'))});
 }
 
 function submitCheckin(){
   var input=document.getElementById('checkinKills');
   if(!input)return;
   var kills=parseInt(input.value);
-  if(!kills||kills<=0){alert('请输入有效的灭蚊数量');return}
-  if(kills>1000){alert('单次打卡最多记录1000只');return}
+  if(!kills||kills<=0){alert('请输入有效的'+t('ci.detail_kills')+'');return}
+  if(kills>1000){alert(t('ci.err_max'));return}
   var points=kills*10;
   var record={
     id:Date.now(),
@@ -866,21 +1172,21 @@ function submitCheckin(){
   var awardEl=document.getElementById('checkinAward');
   if(awardEl){awardEl.querySelector('.cpa-val').textContent='+'+points;awardEl.style.display='block';setTimeout(function(){awardEl.style.display='none'},3000)}
   renderCheckin();
-  if(S.watchBound)showWatchNotification('📸 实景打卡成功','灭蚊'+kills+'只，获得'+points+'积分');
+  if(S.watchBound)showWatchNotification('📸 '+t('ci.title')+'成功','灭蚊'+kills+'只，获得'+points+'积分');
 }
 
 function renderCheckin(){
   var el=document.getElementById('page-checkin');
   if(!el)return;
-  var html='<div class="checkin-hero"><div class="ch-icon">📸</div><div class="ch-title">实景打卡</div><div class="ch-sub">记录现实灭蚊战绩，赢取游戏积分</div></div>';
-  html+='<div class="checkin-form"><label class="cf-label">🦟 本次灭蚊数量</label><input class="cf-input" id="checkinKills" type="number" min="1" max="1000" placeholder="请输入数量"><div class="cf-hint">填写现实中使用电蚊拍消灭的蚊子数量</div></div>';
-  html+='<div class="checkin-upload"><label class="cf-label">📷 上传现场照片（可选）</label><div class="checkin-upload-area" id="checkinUploadArea"><div class="cua-icon">📷</div><div class="cua-text">点击上传照片</div><div class="cua-hint">支持 JPG/PNG，最大10MB</div><input type="file" accept="image/*" onchange="handleImageUpload(event)"></div><div class="checkin-preview" id="checkinPreview"></div></div>';
-  html+='<button class="btn btn-brand btn-contained checkin-submit" onclick="submitCheckin()">📸 提交打卡</button>';
-  html+='<div class="ci-points-awarded" id="checkinAward" style="display:none"><div class="cpa-val">+0</div><div class="cpa-label">获得积分（可用于兑换道具）</div></div>';
+  var html='<div class="checkin-hero"><div class="ch-icon">📸</div><div class="ch-title">实景打卡</div><div class="ch-sub">'+t('ci.sub')+'</div></div>';
+  html+='<div class="checkin-form"><label class="cf-label">'+t('ci.kills_label')+'</label><input class="cf-input" id="checkinKills" type="number" min="1" max="1000" placeholder="'+t('ci.kills_ph')+'"><div class="cf-hint">'+t('ci.kills_hint')+'</div></div>';
+  html+='<div class="checkin-upload"><label class="cf-label">'+t('ci.upload_label')+'</label><div class="checkin-upload-area" id="checkinUploadArea"><div class="cua-icon">📷</div><div class="cua-text">'+t('ci.upload_text')+'</div><div class="cua-hint">'+t('ci.upload_hint')+'</div><input type="file" accept="image/*" onchange="handleImageUpload(event)"></div><div class="checkin-preview" id="checkinPreview"></div></div>';
+  html+='<button class="btn btn-brand btn-contained checkin-submit" onclick="submitCheckin()">'+t('ci.submit')+'</button>';
+  html+='<div class="ci-points-awarded" id="checkinAward" style="display:none"><div class="cpa-val">+0</div><div class="cpa-label">'+t('ci.award_label')+'</div></div>';
   if(CHECKIN_RECORDS.length===0){
-    html+='<div class="checkin-empty"><div class="ce-icon">📸</div><div>暂无打卡记录<br><span style="font-size:11px">完成首次实景打卡吧！</span></div></div>';
+    html+='<div class="checkin-empty"><div class="ce-icon">📸</div><div>'+t('ci.no_records')+'<br><span style="font-size:11px">'+t('ci.no_records_sub')+'</span></div></div>';
   }else{
-    html+='<div class="checkin-records"><div class="section-title">📋 打卡记录</div>';
+    html+='<div class="checkin-records"><div class="section-title">'+t('ci.records_title')+'</div>';
     for(var i=CHECKIN_RECORDS.length-1;i>=0;i--){
       var r=CHECKIN_RECORDS[i];
       var imgTag=r.image?'<img class="cr-img" src="'+r.image.substring(0,80)+'...">':'<div class="cr-img" style="display:flex;align-items:center;justify-content:center;font-size:20px;color:var(--text-muted)">🦟</div>';
@@ -897,7 +1203,7 @@ function viewCheckinDetail(id){
   var m=document.getElementById('modal'),box=document.getElementById('modalBox');
   if(!m||!box)return;
   var imgHtml=record.image?'<div style="margin:12px 0;border-radius:var(--radius-md);overflow:hidden"><img src="'+record.image+'" style="width:100%"></div>':'';
-  box.innerHTML='<div style="font-size:36px;line-height:1;margin-bottom:8px">📸</div><h3>打卡详情</h3><div style="text-align:left;padding:8px 0"><div style="display:flex;justify-content:space-between;padding:6px 0"><span class="text-secondary">灭蚊数量</span><span class="text-brand" style="font-weight:800">'+record.kills+' 只</span></div><div style="display:flex;justify-content:space-between;padding:6px 0"><span class="text-secondary">获得积分</span><span class="text-success" style="font-weight:800">+'+record.points+'</span></div><div style="display:flex;justify-content:space-between;padding:6px 0"><span class="text-secondary">打卡时间</span><span style="font-size:12px;color:var(--text-muted)">'+record.date+'</span></div></div>'+imgHtml+'<button class="modal-close" onclick="closeModal()">关闭</button>';
+  box.innerHTML='<div style="font-size:36px;line-height:1;margin-bottom:8px">📸</div><h3>'+t('ci.detail_title')+'</h3><div style="text-align:left;padding:8px 0"><div style="display:flex;justify-content:space-between;padding:6px 0"><span class="text-secondary">灭蚊数量</span><span class="text-brand" style="font-weight:800">'+record.kills+' 只</span></div><div style="display:flex;justify-content:space-between;padding:6px 0"><span class="text-secondary">'+t('ci.detail_points')+'</span><span class="text-success" style="font-weight:800">+'+record.points+'</span></div><div style="display:flex;justify-content:space-between;padding:6px 0"><span class="text-secondary">'+t('ci.detail_time')+'</span><span style="font-size:12px;color:var(--text-muted)">'+record.date+'</span></div></div>'+imgHtml+'<button class="modal-close" onclick="closeModal()">'+t('ci.close')+'</button>';
   m.classList.add('show');
 }
 
@@ -1141,9 +1447,9 @@ function render(){
   if(!S.loggedIn){renderLogin();return}
   const tabs=['page-home','page-lb','page-dev','page-badges','page-me','page-game','page-checkin'];
   const icons=['🏠','🏆','📡','🎖️','👤','🎮','📸'];
-  const labels=['首页','排行','设备','成就','我的','游戏','打卡'];
+  const labels=[t('nav.home'),t('nav.lb'),t('nav.dev'),t('nav.badges'),t('nav.me'),t('nav.game'),t('nav.checkin')];
   app.innerHTML=tabs.map((c,i)=>`<div class="page ${i===S.tab?'active':''}" id="${c}"></div>`).join('')+
-    `<div class="nav">${icons.map((ic,i)=>`<button class="nav-item ${i===S.tab?'active':''}" onclick="setTab(${i})"><span class="icon">${ic}</span>${labels[i]}</button>`).join('')}</div>`+
+    `<div class="lang-switch"><button class="lang-btn ${currentLang==='zh-CN'?'active':''}" onclick="setLang('zh-CN')">简</button><button class="lang-btn ${currentLang==='zh-TW'?'active':''}" onclick="setLang('zh-TW')">繁</button><button class="lang-btn ${currentLang==='en'?'active':''}" onclick="setLang('en')">EN</button></div><div class="nav">${icons.map((ic,i)=>`<button class="nav-item ${i===S.tab?'active':''}" onclick="setTab(${i})"><span class="icon">${ic}</span>${labels[i]}</button>`).join('')}</div>`+
     `<div class="kill-log" id="killLog"></div>`+
     `<div class="modal-overlay" id="modal"><div class="modal-box" id="modalBox"></div></div>`+
     `<div class="watch-notification" id="watchNotif">...</div>`+
@@ -1155,20 +1461,20 @@ function render(){
 function renderLogin(){
   app.innerHTML=`<div class="splash">
     <div class="logo">⚡</div>
-    <h1>八万·蚊消令</h1>
-    <div class="sub">硬核灭蚊，全球竞技</div>
-    <div class="field"><label>手机号</label><input id="phone" type="tel" placeholder="请输入手机号" value="13800138000"></div>
-    <div class="field"><label>验证码</label><input id="sms" type="text" placeholder="请输入验证码" maxlength="6" value="123456"></div>
-    <button class="btn btn-brand" style="margin-top:8px" onclick="doLogin()">登 录</button>
-    <button class="btn btn-secondary" style="margin-top:8px" onclick="doLogin()">微信登录</button>
+    <h1>${t('login.title')}</h1>
+    <div class="sub">${t('login.sub')}</div>
+    <div class="field"><label>${t('login.phone')}</label><input id="phone" type="tel" placeholder="${t('login.phone_ph')}" value="13800138000"></div>
+    <div class="field"><label>${t('login.sms')}</label><input id="sms" type="text" placeholder="${t('login.sms_ph')}" maxlength="6" value="123456"></div>
+    <button class="btn btn-brand" style="margin-top:8px" onclick="doLogin()">${t('login.btn')}</button>
+    <button class="btn btn-secondary" style="margin-top:8px" onclick="doLogin()">${t('login.wechat')}</button>
   </div>`;
 }
 
 function doLogin(){
   const p=document.getElementById('phone').value.trim();
   const s=document.getElementById('sms').value.trim();
-  if(!p||!s){alert('请输入手机号和验证码');return}
-  if(s!=='123456'){alert('验证码错误（Mock验证码：123456）');return}
+  if(!p||!s){alert(t('login.err_empty'));return}
+  if(s!=='123456'){alert(t('login.err_sms'));return}
   S.loggedIn=true;save();render();
 }
 
@@ -1185,34 +1491,34 @@ function renderHome(){
   el.innerHTML=`
     <div class="device-status">
       <div class="status-dot ${S.sessionActive?'online ble-pulse':'online'}"></div>
-      <span style="font-size:14px;font-weight:600">${S.sessionActive?'蓝牙已连接 · 出击中':'蓝牙已连接 · 待命中'}</span>
+      <span style="font-size:14px;font-weight:600">${S.sessionActive?t('home.bt_active'):t('home.bt_idle')}</span>
     </div>
     <div style="padding:20px 0">
       <div class="big-number" id="bigNum">${S.today}</div>
       <div style="text-align:center;font-size:13px;color:var(--text-muted);margin-top:6px">今日灭蚊</div>
     </div>
     <div class="flex-row" style="margin-top:8px">
-      <div class="stat-card"><div class="num">${S.week}</div><div class="lbl">本周</div></div>
-      <div class="stat-card"><div class="num">${S.month}</div><div class="lbl">本月</div></div>
-      <div class="stat-card"><div class="num">${S.season}</div><div class="lbl">赛季</div></div>
+      <div class="stat-card"><div class="num">${S.week}</div><div class="lbl">${t('home.week')}</div></div>
+      <div class="stat-card"><div class="num">${S.month}</div><div class="lbl">${t('home.month')}</div></div>
+      <div class="stat-card"><div class="num">${S.season}</div><div class="lbl">${t('home.season')}</div></div>
     </div>
     <div style="margin-top:20px">
       ${S.sessionActive
-        ?`<button class="btn-contained btn-danger-contained" onclick="endSession()">⏹ 结束出击</button>`
-        :`<button class="btn-contained btn-brand-contained" onclick="startSession()">⚡ 开始出击</button>`}
+        ?`<button class="btn-contained btn-danger-contained" onclick="endSession()">${t('home.stop')}</button>`
+        :`<button class="btn-contained btn-brand-contained" onclick="startSession()">${t('home.start')}</button>`}
     </div>
     ${S.watchBound?`<div class="card" style="margin-top:12px;text-align:center;padding:10px 14px;font-size:12px;color:var(--text-secondary)">⌚ 手表联动已启用 · 出击模式可从手表远程控制</div>`:''}`;
 }
 
-function startSession(){S.sessionActive=true;startKillLoop();renderHome();if(S.watchBound)showWatchNotification('⚡ 出击模式启动','首页出击模式已开始运行')}
-function endSession(){S.sessionActive=false;stopKillLoop();renderHome();if(S.watchBound)showWatchNotification('⏹ 出击模式停止','首页出击模式已停止')}
+function startSession(){S.sessionActive=true;startKillLoop();renderHome();if(S.watchBound)showWatchNotification(t('home.session_start'),t('home.session_start_desc'))}
+function endSession(){S.sessionActive=false;stopKillLoop();renderHome();if(S.watchBound)showWatchNotification(t('home.session_stop'),t('home.session_stop_desc'))}
 
 // ── Leaderboard ──
 function renderLB(){
   const el=document.getElementById('page-lb');if(!el)return;
   const avatarColors=['var(--gold)','var(--silver)','var(--bronze)','var(--info)','var(--info)','var(--info)','var(--info)','var(--info)','var(--info)','var(--info)'];
   el.innerHTML=`
-    <div class="season-tabs"><button class="season-tab active">2026夏季赛</button></div>
+    <div class="season-tabs"><button class="season-tab active">${t('lb.season')}</button></div>
     <div class="card card-highlight" style="margin-bottom:12px">
       <div style="font-size:12px;color:var(--text-secondary)">你的排名</div>
       <div style="display:flex;align-items:center;gap:10px;margin-top:6px">
@@ -1237,7 +1543,7 @@ function renderLB(){
 function renderDev(){
   const el=document.getElementById('page-dev');if(!el)return;
   let scanHtml='';
-  if(S.scanning)scanHtml=`<div class="radar-wrap"><div class="radar"></div><div style="margin-top:12px;font-size:14px;color:var(--text-secondary)">正在扫描附近设备...</div></div>`;
+  if(S.scanning)scanHtml=`<div class="radar-wrap"><div class="radar"></div><div style="margin-top:12px;font-size:14px;color:var(--text-secondary)">'+t('dev.scanning')+'</div></div>`;
   else if(S.scanResults.length)scanHtml=S.scanResults.map(d=>`<div class="scan-device${d.name.includes('Watch')||d.name.includes('手表')?' watch-option':''}${d.name.includes('指环')||d.name.includes('Ring')?' ring-option':''}${d.name.includes('AR')||d.name.includes('Glasses')?' glasses-option':''}">
     <span class="dev-name">${d.name}</span><span class="dev-rssi">${d.rssi} dBm</span>
     <button class="bind-btn" onclick="bindDev('${d.name}')">${d.name.includes('Watch')||d.name.includes('手表')&&!S.watchBound?'绑定手表':d.name.includes('指环')||d.name.includes('Ring')&&!S.ringBound?'绑定指环':d.name.includes('AR')||d.name.includes('Glasses')&&!S.glassesBound?'绑定眼镜':'绑定'}</button></div>`).join('');
@@ -1248,20 +1554,20 @@ function renderDev(){
         <span class="watch-icon">⌚</span>
         <div class="watch-info">
           <div class="watch-name">${S.watchNickname} <span style="font-size:11px;color:var(--text-muted);cursor:pointer" onclick="editWatchNickname()">✏️</span></div>
-          <div class="watch-model">Mock Watch Pro · 固件 ${S.watchFirmware} · 已连接</div>
+          <div class="watch-model">Mock Watch Pro · 固件 ${S.watchFirmware} · '+t('dev.racket_connected')+'</div>
         </div>
-        <div style="text-align:right"><div class="text-success" style="font-size:12px">● 在线</div></div>
+        <div style="text-align:right"><div class="text-success" style="font-size:12px">'+t('dev.online')+'</div></div>
       </div>
       <div class="watch-status-row">
-        <div class="watch-stat"><div class="watch-stat-val text-info">${S.watchBattery}%</div><div class="watch-stat-lbl">电量</div></div>
-        <div class="watch-stat"><div class="watch-stat-val text-success">${S.watchSignal} dBm</div><div class="watch-stat-lbl">信号</div></div>
-        <div class="watch-stat"><div class="watch-stat-val text-brand">${S.watchHeartRate}</div><div class="watch-stat-lbl">心率(BPM)</div></div>
+        <div class="watch-stat"><div class="watch-stat-val text-info">${S.watchBattery}%</div><div class="watch-stat-lbl">'+t('dev.battery')+'</div></div>
+        <div class="watch-stat"><div class="watch-stat-val text-success">${S.watchSignal} dBm</div><div class="watch-stat-lbl">'+t('dev.signal')+'</div></div>
+        <div class="watch-stat"><div class="watch-stat-val text-brand">${S.watchHeartRate}</div><div class="watch-stat-lbl">'+t('dev.heart_rate')+'</div></div>
       </div>
       <div class="watch-actions">
-        <button class="btn btn-danger btn-sm" onclick="unbindWatch()">解绑手表</button>
-        <button class="btn btn-secondary btn-sm" onclick="simulateWatchRemote('start')">远程启动</button>
-        <button class="btn btn-secondary btn-sm" onclick="simulateWatchRemote('stop')">远程停止</button>
-        <button class="device-buy-btn" onclick="goBuy('watch')">🛒 选购手表</button>
+        <button class="btn btn-danger btn-sm" onclick="unbindWatch()">'+t('dev.unbind')+'</button>
+        <button class="btn btn-secondary btn-sm" onclick="simulateWatchRemote('start')">'+t('dev.remote_start')+'</button>
+        <button class="btn btn-secondary btn-sm" onclick="simulateWatchRemote('stop')">'+t('dev.remote_stop')+'</button>
+        <button class="device-buy-btn" onclick="goBuy('watch')">'+t('dev.buy_watch')+'</button>
       </div>
     </div>`;
   }
@@ -1274,8 +1580,8 @@ function renderDev(){
         <div style="font-size:11px;color:var(--text-muted)">电量</div></div>
       </div>
       <div style="display:flex;gap:8px;margin-top:12px">
-      <button class="btn btn-danger btn-sm" style="flex:1" onclick="alert('设备已解绑')">解绑设备</button>
-      <button class="device-buy-btn" style="flex:1" onclick="goBuy('racket')">🛒 立即选购</button>
+      <button class="btn btn-danger btn-sm" style="flex:1" onclick="alert(t('dev.unbound_alert'))">'+t('dev.unbind_device')+'</button>
+      <button class="device-buy-btn" style="flex:1" onclick="goBuy('racket')">'+t('dev.buy_racket')+'</button>
     </div>
     </div>
     ${watchHtml}
@@ -1283,27 +1589,27 @@ function renderDev(){
       <div class="ring-header">
         <span class="ring-icon">💍</span>
         <div class="ring-info">
-          <div class="ring-name">智能指环 S1</div>
-          <div class="ring-model">八万Ring S1 · 已连接</div>
+          <div class="ring-name">'+t('dev.ring_name')+'</div>
+          <div class="ring-model">'+t('dev.ring_model')+'</div>
         </div>
         <div style="text-align:right"><div class="text-success" style="font-size:12px">● 在线</div></div>
       </div>
       <div class="ring-status-row">
         <div class="ring-stat"><div class="ring-stat-val text-info">${S.ringBattery}%</div><div class="ring-stat-lbl">电量</div></div>
         <div class="ring-stat"><div class="ring-stat-val text-success">${S.ringSignal}</div><div class="ring-stat-lbl">信号</div></div>
-        <div class="ring-stat"><div class="ring-stat-val text-brand">💍</div><div class="ring-stat-lbl">已绑定</div></div>
+        <div class="ring-stat"><div class="ring-stat-val text-brand">💍</div><div class="ring-stat-lbl">'+t('dev.bound')+'</div></div>
       </div>
       <div class="ring-actions">
-        <button class="btn btn-danger btn-sm" onclick="unbindRing()">解绑指环</button>
-        <button class="device-buy-btn" onclick="goBuy('ring')">🛒 选购指环</button>
+        <button class="btn btn-danger btn-sm" onclick="unbindRing()">'+t('dev.unbind_ring')+'</button>
+        <button class="device-buy-btn" onclick="goBuy('ring')">'+t('dev.buy_ring')+'</button>
       </div>
     </div>`:''}
     ${S.glassesBound?`<div class="glasses-device-card bound">
       <div class="glasses-header">
         <span class="glasses-icon">🥽</span>
         <div class="glasses-info">
-          <div class="glasses-name">智能AR眼镜</div>
-          <div class="glasses-model">八万AR Glasses · 已连接</div>
+          <div class="glasses-name">'+t('dev.glasses_name')+'</div>
+          <div class="glasses-model">'+t('dev.glasses_model')+'</div>
         </div>
         <div style="text-align:right"><div class="text-success" style="font-size:12px">● 在线</div></div>
       </div>
@@ -1313,8 +1619,8 @@ function renderDev(){
         <div class="glasses-stat"><div class="glasses-stat-val text-brand">🥽</div><div class="glasses-stat-lbl">已绑定</div></div>
       </div>
       <div class="glasses-actions">
-        <button class="btn btn-danger btn-sm" onclick="unbindGlasses()">解绑眼镜</button>
-        <button class="device-buy-btn" onclick="alert('AR眼镜即将上市，敬请期待！')">🛒 选购眼镜</button>
+        <button class="btn btn-danger btn-sm" onclick="unbindGlasses()">'+t('dev.unbind_glasses')+'</button>
+        <button class="device-buy-btn" onclick="alert('AR眼镜即将上市，敬请期待！')">'+t('dev.buy_glasses')+'</button>
       </div>
     </div>`:''}
     ${S.scanning||S.scanResults.length?'':`<button class="scan-btn" onclick="startScan()">＋ 添加新设备</button>`}
@@ -1340,7 +1646,7 @@ function bindDev(n){
     S.watchBattery=78;
     S.watchSignal='-48';
     save();
-    alert('⌚ 智能手表绑定成功！\n\n🎉 专属权益已激活：\n- 所有道具冷却时间减少30%\n- 游戏心率实时同步\n- 战绩简报推送');
+    alert(t('dev.watch_bind_ok'));
   }else if(n.includes('指环')||n.includes('Ring')){
     bindRing();
     return;
@@ -1353,22 +1659,22 @@ function bindDev(n){
   renderDev();
 }
 function editWatchNickname(){
-  const nick=prompt('设置手表昵称：',S.watchNickname);
+  const nick=prompt(t('dev.watch_nick_set'),S.watchNickname);
   if(nick&&nick.trim()){
     S.watchNickname=nick.trim();
     save();
     renderDev();
-    showWatchNotification('⌚ 手表设置','昵称已更新：'+S.watchNickname);
+    showWatchNotification(t('dev.watch_nick_set'),t('dev.watch_nick_updated')+S.watchNickname);
   }
 }
 
 function unbindWatch(){
-  if(!confirm('确定解绑智能手表？\n\n解绑后将失去道具冷却减免等专属权益。'))return;
+  if(!confirm(t('dev.watch_unbind_confirm')))return;
   S.watchBound=false;
   S.watchBattery=0;
   save();
   stopHeartRate();
-  alert('⌚ 智能手表已解绑');
+  alert(t('dev.watch_unbound'));
   renderDev();
 }
 
@@ -1378,16 +1684,16 @@ function bindRing(){
   S.ringBattery=85;
   S.ringSignal='-52';
   save();
-  alert('💍 智能指环绑定成功！\n\n🎉 专属权益已激活：\n- 解锁手势操控模式\n- 挥手即杀，体验未来交互\n\n（手势操控功能正在开发中）');
+  alert(t('dev.ring_bind_ok'));
   renderDev();
 }
 
 function unbindRing(){
-  if(!confirm('确定解绑智能指环？\n\n解绑后将失去手势操控等专属权益。'))return;
+  if(!confirm(t('dev.ring_unbind_confirm')))return;
   S.ringBound=false;
   S.ringBattery=0;
   save();
-  alert('💍 智能指环已解绑');
+  alert(t('dev.ring_unbound'));
   renderDev();
 }
 
@@ -1397,16 +1703,16 @@ function bindGlasses(){
   S.glassesBattery=72;
   S.glassesSignal='-55';
   save();
-  alert('🥽 智能AR眼镜绑定成功！\n\n🎉 专属权益已激活：\n- 解锁AR实景灭蚊模式\n- 虚拟蚊子叠加现实场景\n\n（AR实景功能正在开发中）');
+  alert(t('dev.glasses_bind_ok'));
   renderDev();
 }
 
 function unbindGlasses(){
-  if(!confirm('确定解绑智能AR眼镜？\n\n解绑后将失去AR实景灭蚊等专属权益。'))return;
+  if(!confirm(t('dev.glasses_unbind_confirm')))return;
   S.glassesBound=false;
   S.glassesBattery=0;
   save();
-  alert('🥽 智能AR眼镜已解绑');
+  alert(t('dev.glasses_unbound'));
   renderDev();
 }
 
@@ -1419,16 +1725,16 @@ function showFeaturePreview(featureName,description,releaseDate){
     <h3>${featureName}</h3>
     <div style="text-align:left;padding:12px 0">
       <div style="background:var(--surface);border-radius:var(--radius-md);padding:12px;margin-bottom:10px;border:1px solid var(--border)">
-        <div style="font-size:13px;color:var(--text-secondary);margin-bottom:6px">功能描述</div>
+        <div style="font-size:13px;color:var(--text-secondary);margin-bottom:6px">${t('feature.desc')}</div>
         <div style="font-size:14px;line-height:1.6">${description}</div>
       </div>
       <div style="background:rgba(245,158,11,.08);border-radius:var(--radius-md);padding:12px;border:1px solid rgba(245,158,11,.25)">
-        <div style="font-size:13px;color:var(--brand);font-weight:700;margin-bottom:4px">📅 开发进度</div>
-        <div style="font-size:13px;color:var(--text-secondary)">预计发布时间：${releaseDate}</div>
-        <div style="font-size:12px;color:var(--text-muted);margin-top:6px">当前版本：V1.0 基础联动可用\nV1.1 将支持手势识别\nV1.2 将支持完整AR实景</div>
+        <div style="font-size:13px;color:var(--brand);font-weight:700;margin-bottom:4px">${t('feature.progress')}</div>
+        <div style="font-size:13px;color:var(--text-secondary)">${t('feature.release')}${releaseDate}</div>
+        <div style="font-size:12px;color:var(--text-muted);margin-top:6px">${t('feature.version')}</div>
       </div>
     </div>
-    <button class="modal-close" onclick="closeModal()">我知道了</button>`;
+    <button class="modal-close" onclick="closeModal()">${t('feature.i_know')}</button>`;
   m.classList.add('show');
 }
 
@@ -1456,10 +1762,10 @@ function renderBadges(){
 
   let allStarHtml='';
   if(allUnlocked){
-    allStarHtml='<div class="badge-all-star"><div class="as-icon">✨</div><div class="as-title">勋章大师</div><div class="as-sub">恭喜！你已集齐全部8枚勋章</div></div>';
+    allStarHtml='<div class="badge-all-star"><div class="as-icon">✨</div><div class="as-title">'+t('badge.master_title')+'</div><div class="as-sub">'+t('badge.master_sub')+'</div></div>';
   }
 
-  const countBarHtml='<div class="badge-count-bar"><span class="bcb-left">🎖️ 已解锁勋章</span><span class="bcb-right">'+unlockedCount+' / '+BADGES.length+'</span></div>';
+  const countBarHtml='<div class="badge-count-bar"><span class="bcb-left">'+t('badge.unlocked')+'</span><span class="bcb-right">'+unlockedCount+' / '+BADGES.length+'</span></div>';
 
   const badgeCards=BADGES.map(function(b){
     const isUnlocked=b.ok||unlocked.includes(b.id);
@@ -1496,8 +1802,8 @@ function showBadge(id,isUnlocked){
   if(!m||!box)return;
   const prog=getBadgeProgress(b);
   const unlocked=isUnlocked===undefined?(b.ok||(S.unlockedBadges||[]).includes(b.id)):isUnlocked;
-  const progressSection=!unlocked?'<div style="margin:10px 0 4px;font-size:12px;color:var(--text-muted)">达成进度：'+prog.cur+' / '+b.target+'</div><div class="badge-progress-wrap" style="height:6px;margin:4px 0 12px"><div class="badge-progress-bar tier-'+b.tier+'" style="width:'+prog.pct+'%"></div></div>':'';
-  const statusSection=unlocked?'<p style="font-size:12px;color:var(--success);margin-bottom:12px">✅ 解锁时间：'+(b.date||'已获得')+'</p>':'<p style="font-size:12px;color:var(--text-muted);margin-bottom:4px">解锁条件：'+b.cond+'</p>';
+  const progressSection=!unlocked?'<div style="margin:10px 0 4px;font-size:12px;color:var(--text-muted)">'+t('badge.progress')+''+prog.cur+' / '+b.target+'</div><div class="badge-progress-wrap" style="height:6px;margin:4px 0 12px"><div class="badge-progress-bar tier-'+b.tier+'" style="width:'+prog.pct+'%"></div></div>':'';
+  const statusSection=unlocked?'<p style="font-size:12px;color:var(--success);margin-bottom:12px">✅ '+t('badge.unlocked_time')+''+(b.date||'已获得')+'</p>':'<p style="font-size:12px;color:var(--text-muted);margin-bottom:4px">'+t('badge.unlock_cond')+''+b.cond+'</p>';
   box.innerHTML='<div class="modal-icon">'+b.icon+'</div>'+
     '<h3 style="margin-bottom:6px">'+b.name+'</h3>'+
     '<span class="badge-unlock-tier '+tc[b.tier]+'">'+tn[b.tier]+'</span>'+
@@ -1520,11 +1826,11 @@ function showBadgeUnlockPopup(b,onClose){
   const popup=document.createElement('div');
   popup.className='badge-unlock-popup';
   popup.innerHTML='<span class="badge-unlock-icon">'+b.icon+'</span>'+
-    '<div class="badge-unlock-title">🎉 勋章解锁！</div>'+
+    '<div class="badge-unlock-title">'+t('badge.unlock_excl')+'</div>'+
     '<div class="badge-unlock-name">'+b.name+'</div>'+
     '<span class="badge-unlock-tier '+tc[b.tier]+'">'+tn[b.tier]+'</span>'+
     '<p style="font-size:12px;color:var(--text-secondary);margin:10px 0 14px">'+b.desc+'</p>'+
-    '<button class="badge-unlock-btn" id="badgeUnlockOk">太棒了 ✓</button>';
+    '<button class="badge-unlock-btn" id="badgeUnlockOk">'+t('badge.unlock_btn')+'</button>';
   overlay.appendChild(popup);
   document.body.appendChild(overlay);
   document.getElementById('badgeUnlockOk').addEventListener('click',function(){
@@ -1557,7 +1863,7 @@ function checkBadges(onDone){
       queue.push(b);
       // 手表联动：解锁勋章时推送通知
       if(S.watchBound){
-        showWatchNotification('🎖️ 勋章解锁！', '恭喜获得【'+b.name+'】勋章！');
+        showWatchNotification(t('watch.badge_notif_title'), t('watch.badge_notif_body')+b.name+'】');
       }
     }
   });
@@ -1583,29 +1889,29 @@ function renderMe(){
   const el=document.getElementById('page-me');if(!el)return;
   el.innerHTML=`
     <div class="profile-header">
-      <div class="profile-avatar">灭</div>
-      <div class="profile-name">灭蚊战士</div>
-      <div class="profile-level">◉ LV.12</div>
+      <div class="profile-avatar">'+t('me.avatar')+'</div>
+      <div class="profile-name">'+t('me.name')+'</div>
+      <div class="profile-level">'+t('me.level')+'</div>
     </div>
     <div class="profile-stats">
-      <div class="profile-stat"><div class="pval">${S.season}</div><div class="plbl">总击杀</div></div>
-      <div class="profile-stat"><div class="pval">#23</div><div class="plbl">最佳排名</div></div>
-      <div class="profile-stat"><div class="pval">${(S.unlockedBadges||[]).length}/${BADGES.length}</div><div class="plbl">勋章</div></div>
-      <div class="profile-stat"><div class="pval">${S.pkWinRate||0}%</div><div class="plbl">PK胜率</div></div>
-      <div class="profile-stat"><div class="pval">${S.pkTotal||0}</div><div class="plbl">PK场次</div></div>
+      <div class="profile-stat"><div class="pval">${S.season}</div><div class="plbl">'+t('me.total_kills')+'</div></div>
+      <div class="profile-stat"><div class="pval">#23</div><div class="plbl">'+t('me.best_rank')+'</div></div>
+      <div class="profile-stat"><div class="pval">${(S.unlockedBadges||[]).length}/${BADGES.length}</div><div class="plbl">'+t('me.badges')+'</div></div>
+      <div class="profile-stat"><div class="pval">${S.pkWinRate||0}%</div><div class="plbl">'+t('me.pk_winrate')+'</div></div>
+      <div class="profile-stat"><div class="pval">${S.pkTotal||0}</div><div class="plbl">'+t('me.pk_total')+'</div></div>
     </div>
-    <div class="section-title">最近战绩</div>
+    <div class="section-title">'+t('me.recent')+'</div>
     ${SESSIONS.map(s=>`<div class="session-item">
       <span class="session-date">${s.d}</span>
       <span class="session-kills">${s.k}只 · ${s.sc}分</span>
       <span style="font-size:12px;color:var(--text-muted)">${s.t}</span>
     </div>`).join('')}
-         <div style="font-size:11px;color:var(--text-muted);margin-top:8px;margin-bottom:4px">—— PK 战绩 ——</div>
-    ${S.pkHistory&&S.pkHistory.length>0?S.pkHistory.slice(-3).map(function(p){return '<div class="session-item" style="opacity:.85"><span class="session-date">'+p.d+'</span><span class="session-kills">'+p.s+'只 vs '+p.o+'只 · '+(p.r==='win'?'🏆胜利':p.r==='lose'?'😢失败':'🤝平局')+'</span><span style="font-size:12px;color:var(--text-muted)">PK对战</span></div>';}).join(''):'<div style="font-size:12px;color:var(--text-muted);margin-top:4px">暂无PK战绩</div>'}
+         <div style="font-size:11px;color:var(--text-muted);margin-top:8px;margin-bottom:4px">'+t('me.pk_records')+'</div>
+    ${S.pkHistory&&S.pkHistory.length>0?S.pkHistory.slice(-3).map(function(p){return '<div class="session-item" style="opacity:.85"><span class="session-date">'+p.d+'</span><span class="session-kills">'+p.s+'只 vs '+p.o+'只 · '+(p.r==='win'?''+t('misc.win')+'':p.r==='lose'?''+t('misc.lose')+'':''+t('misc.draw')+'')+'</span><span style="font-size:12px;color:var(--text-muted)">'+t('misc.pk_battle')+'</span></div>';}).join(''):'<div style="font-size:12px;color:var(--text-muted);margin-top:4px">'+t('me.no_pk')+'</div>'}
     <div style="margin-top:16px">
-      <div class="menu-item" onclick="renderShop()"><span class="menu-label">🛒 设备商城</span><span class="menu-arrow">›</span></div>
-      <div class="menu-item" onclick="alert('设置页面')"><span class="menu-label">⚙️ 设置</span><span class="menu-arrow">›</span></div>
-      <div class="menu-item" onclick="doLogout()"><span class="menu-label text-danger">退出登录</span></div>
+      <div class="menu-item" onclick="renderShop()"><span class="menu-label">'+t('me.shop')+'</span><span class="menu-arrow">›</span></div>
+      <div class="menu-item" onclick="alert(t('me.settings_alert'))"><span class="menu-label">'+t('me.settings')+'</span><span class="menu-arrow">›</span></div>
+      <div class="menu-item" onclick="doLogout()"><span class="menu-label text-danger">'+t('me.logout')+'</span></div>
     </div>`;
 }
 
@@ -1626,7 +1932,7 @@ function startGame(){
   // Watch联动：启动心率模拟，发送通知
   if(S.watchBound){
     startHeartRate();
-    showWatchNotification('🎮 游戏开始','极速灭蚊模式已启动！');
+    showWatchNotification(t('game.watch_start'),t('game.watch_start_desc'));
   }
   // PK mode: start opponent AI
   if(G.mode==='pk'){startOpponentAI();}
@@ -1762,9 +2068,9 @@ function endGame(){
   if(S.watchBound){
     stopHeartRate();
     if(isNewHigh){
-      showWatchNotification('🏆 新纪录！','最高分刷新: '+G.score+'只');
+      showWatchNotification(t('game.watch_new_record'),t('game.watch_new_record_desc')+G.score+t('misc.kills_unit'));
     }else{
-      showWatchNotification('🎮 游戏结束','本次击杀: '+G.score+'只');
+      showWatchNotification(t('game.watch_end'),t('game.watch_end_desc')+G.score+t('misc.kills_unit'));
     }
     showGameBriefing(G.score,S.today,S.season);
   }
@@ -1800,11 +2106,11 @@ function renderGame(){
       else if(G.score>=30)tier='<div style="margin-top:6px;font-size:18px">🔥 灭蚊高手！</div>';
       else if(G.score>=15)tier='<div style="margin-top:6px;font-size:16px">⚡ 身手不错！</div>';
       else if(G.score>0)tier='<div style="margin-top:6px;font-size:14px;color:var(--text-secondary)">继续加油！</div>';
-      ov='<div class="game-result"><div class="gr-score">'+G.score+'</div><div class="gr-label">你消灭了 '+G.score+' 只蚊子！</div>'+tier+'</div>';
+      ov='<div class="game-result"><div class="gr-score">'+G.score+'</div><div class="gr-label">'+t('game.killed')+' '+G.score+' '+t('game.mosquitoes')+'</div>'+tier+'</div>';
     }else{
       ov='<div class="go-text">10秒倒计时，点击蚊子即可消灭</div><div class="go-text" style="font-size:12px">倒计时越少，蚊子越多！</div>';
     }
-    boardHTML='<div class="game-overlay"><div class="go-icon">🦟</div>'+ov+'<button class="btn btn-brand" style="width:200px;margin-top:16px" onclick="startGame()">'+(G.score>0?'🔄 再来一局':'⚡ 开始游戏')+'</button></div>';
+    boardHTML='<div class="game-overlay"><div class="go-icon">🦟</div>'+ov+'<button class="btn btn-brand" style="width:200px;margin-top:16px" onclick="startGame()">'+(G.score>0?t('game.again'):t('game.start'))+'</button></div>';
   }
   let lbHTML='';
   if(G.score>0){
@@ -1845,7 +2151,7 @@ function renderGame(){
   if(S.glassesBound&&!G.playing){
     modeSwitchesHtml+='<div class="game-mode-switch" data-feature="AR实景模式" data-desc="通过智能AR眼镜将虚拟蚊子叠加到现实场景中，实现AR实景灭蚊体验。支持空间定位、虚拟物理碰撞、多人协作模式。绑定智能AR眼镜后自动解锁。" data-date="2026年Q4"><div class="gms-label"><span class="gms-icon">🥽</span><div><div style="font-size:14px;font-weight:700">AR实景模式</div><div class="gms-hint">智能AR眼镜已绑定 · 功能开发中</div></div></div><div class="toggle-switch" id="arToggle"></div></div>';
   }
-  el.innerHTML='<div class="game-hud"><div class="game-hud-item"><div class="gh-val'+(G.playing&&G.timeLeft<=3?' urgent':'')+'" id="gameTimeLeft">'+G.timeLeft+'</div><div class="gh-lbl">⏱ 剩余秒数</div></div><div class="game-hud-item"><div class="gh-val text-success" id="gameScore">'+G.score+'</div><div class="gh-lbl">🦟 '+(G.playing?'实时击杀':'击杀数')+'</div></div><div class="game-hud-item"><div class="gh-val text-brand">'+S.gameHighScore+'</div><div class="gh-lbl">🏆 最高记录</div></div>'+hrHtml+'</div>'+pkToggleHtml+pkBarHtml+modeSwitchesHtml+'<div class="game-board'+(G.playing?' playing':'')+'" id="gameBoard">'+boardHTML+'</div>'+lbHTML+postGameShopHtml+'<div class="card" style="text-align:center;padding:14px"><div style="font-size:13px;color:var(--text-secondary)">💡 提示：蚊子会在2秒后自动飞走，手速要快！</div></div>';
+  el.innerHTML='<div class="game-hud"><div class="game-hud-item"><div class="gh-val'+(G.playing&&G.timeLeft<=3?' urgent':'')+'" id="gameTimeLeft">'+G.timeLeft+'</div><div class="gh-lbl">'+t('game.time_left')+'</div></div><div class="game-hud-item"><div class="gh-val text-success" id="gameScore">'+G.score+'</div><div class="gh-lbl">'+(G.playing?t('game.kills'):t('game.kills_idle'))+'</div></div><div class="game-hud-item"><div class="gh-val text-brand">'+S.gameHighScore+'</div><div class="gh-lbl">'+t('game.high_score')+'</div></div>'+hrHtml+'</div>'+pkToggleHtml+pkBarHtml+modeSwitchesHtml+'<div class="game-board'+(G.playing?' playing':'')+'" id="gameBoard">'+boardHTML+'</div>'+lbHTML+postGameShopHtml+'<div class="card" style="text-align:center;padding:14px"><div style="font-size:13px;color:var(--text-secondary)">'+t('game.tip')+'</div></div>';
   /* Attach click handlers to game mode switches (avoid inline onclick escaping issues) */
   el.querySelectorAll('.game-mode-switch').forEach(function(div){
     div.addEventListener('click', function(){
@@ -1906,9 +2212,9 @@ function showPKResult(){
   const m=document.getElementById('modal'),box=document.getElementById('modalBox');
   if(!m||!box)return;
   let result='',comment='',fun='';
-  if(G.score>G.opponentScore){result='win';S.pkWins++;comment='胜利！';fun='你把蚊子消灭得干干净净，对手只能望蚊兴叹！';}
-  else if(G.score<G.opponentScore){result='lose';S.pkLosses++;comment='失败...';fun='蚊子选了对手那边，下次加油！';}
-  else{result='draw';S.pkDraws++;comment='平局！';fun='旗鼓相当！蚊子都不知道该往哪边飞！';}
+  if(G.score>G.opponentScore){result='win';S.pkWins++;comment=t('game.win');fun=t('game.win_comment');}
+  else if(G.score<G.opponentScore){result='lose';S.pkLosses++;comment=t('game.lose');fun=t('game.lose_comment');}
+  else{result='draw';S.pkDraws++;comment=t('game.draw');fun=t('game.draw_comment');}
   S.pkTotal++;
   S.pkWinRate=Math.round(S.pkWins/S.pkTotal*100);
   const now=new Date();
@@ -1918,21 +2224,21 @@ function showPKResult(){
   save();
   const resultColor=result==='win'?'var(--success)':result==='lose'?'var(--danger)':'var(--warning)';
   const resultIcon=result==='win'?'🏆':result==='lose'?'😢':'🤝';
-  box.innerHTML='<div style="font-size:48px;margin-bottom:10px">'+resultIcon+'</div>'+'<div style="font-size:22px;font-weight:800;color:'+resultColor+';margin-bottom:8px">'+comment+'</div>'+'<div style="font-size:14px;color:var(--text-secondary);margin-bottom:16px">'+fun+'</div>'+'<div style="display:flex;justify-content:space-around;margin-bottom:20px"><div><div style="font-size:20px;font-weight:800">'+G.score+'</div><div style="font-size:11px;color:var(--text-muted)">你</div></div>'+'<div style="font-size:18px;color:var(--text-muted)">VS</div>'+'<div><div style="font-size:20px;font-weight:800">'+G.opponentScore+'</div><div style="font-size:11px;color:var(--text-muted)">对手</div></div></div>'+'<button class="modal-close" onclick="closeModal();renderGame();" style="width:100%">🔄 再来一局</button>';
+  box.innerHTML='<div style="font-size:48px;margin-bottom:10px">'+resultIcon+'</div>'+'<div style="font-size:22px;font-weight:800;color:'+resultColor+';margin-bottom:8px">'+comment+'</div>'+'<div style="font-size:14px;color:var(--text-secondary);margin-bottom:16px">'+fun+'</div>'+'<div style="display:flex;justify-content:space-around;margin-bottom:20px"><div><div style="font-size:20px;font-weight:800">'+G.score+'</div><div style="font-size:11px;color:var(--text-muted)">'+t('game.you')+'</div></div>'+'<div style="font-size:18px;color:var(--text-muted)">VS</div>'+'<div><div style="font-size:20px;font-weight:800">'+G.opponentScore+'</div><div style="font-size:11px;color:var(--text-muted)">'+t('game.opponent')+'</div></div></div>'+'<button class="modal-close" onclick="closeModal();renderGame();" style="width:100%">'+t('game.play_again')+'</button>';
   m.classList.add('show');
 }
 // ── Shop Page ──
 
 function renderShop(){
   const el=document.getElementById('page-me');if(!el)return;
-  const tabsHtml='<div class="season-tabs"><button class="season-tab '+(SHOP_TAB===0?'active':'')+'" onclick="switchShopTab(0)">🛒 单品</button><button class="season-tab '+(SHOP_TAB===1?'active':'')+'" onclick="switchShopTab(1)">📦 组合套餐</button></div>';
+  const tabsHtml='<div class="season-tabs"><button class="season-tab '+(SHOP_TAB===0?'active':'')+'" onclick="switchShopTab(0)">'+t('shop.single')+'</button><button class="season-tab '+(SHOP_TAB===1?'active':'')+'" onclick="switchShopTab(1)">'+t('shop.bundle')+'</button></div>';
   let bodyHtml = '';
   if(SHOP_TAB === 0){
     bodyHtml = renderShopSingle();
   } else {
     bodyHtml = renderShopBundle();
   }
-  el.innerHTML = '<div class="shop-hero"><div class="sh-icon">🛒</div><div class="sh-title">八万设备商城</div><div class="sh-sub">正品保障 · 7天无理由退换</div></div>' + tabsHtml + bodyHtml + '<div style="margin-top:16px"><button class="btn btn-secondary btn-sm" onclick="renderMe()" style="width:100%">← 返回个人中心</button></div>';
+  el.innerHTML = '<div class="shop-hero"><div class="sh-icon">🛒</div><div class="sh-title">'+t('shop.title')+'</div><div class="sh-sub">'+t('shop.sub')+'</div></div>' + tabsHtml + bodyHtml + '<div style="margin-top:16px"><button class="btn btn-secondary btn-sm" onclick="renderMe()" style="width:100%">'+t('shop.back')+'</button></div>';
 }
 
 function switchShopTab(tab){
@@ -1966,7 +2272,7 @@ function renderShopBundle(){
       });
     }
     itemsHtml+='</div>';
-    html+='<div class="bundle-card" data-bid="'+bid+'"><div class="bc-badge">'+(p.tags[0]||'')+'</div><div class="bc-title">'+p.name+'</div><div class="bc-desc">'+p.desc+'</div>'+itemsHtml+'<div class="bc-price-row"><span class="bc-price">¥<span class="yen">'+formatPrice(p.price)+'</span></span><span class="bc-orig">¥'+formatPrice(p.origPrice)+'</span><span class="bc-save">省¥'+formatPrice(p.saveAmount)+'</span></div><button class="bc-btn" data-buy="'+bid+'">🛒 立即购买</button></div>';
+    html+='<div class="bundle-card" data-bid="'+bid+'"><div class="bc-badge">'+(p.tags[0]||'')+'</div><div class="bc-title">'+p.name+'</div><div class="bc-desc">'+p.desc+'</div>'+itemsHtml+'<div class="bc-price-row"><span class="bc-price">¥<span class="yen">'+formatPrice(p.price)+'</span></span><span class="bc-orig">¥'+formatPrice(p.origPrice)+'</span><span class="bc-save">'+t('shop.save')+'¥'+formatPrice(p.saveAmount)+'</span></div><button class="bc-btn" data-buy="'+bid+'">🛒 立即购买</button></div>';
   });
   return html;
 }
